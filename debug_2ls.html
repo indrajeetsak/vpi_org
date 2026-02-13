@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Debug 2ls Update</title>
+</head>
+
+<body>
+    <h1>Debug 2 Loksabha Update</h1>
+    <p>Open browser console (F12) and check what data is being sent</p>
+
+    <script>
+        // Simulate the form submission
+        const threeLsId = 1; // Example ID
+        const twoLsNames = ['Balapur', 'Chandur'];
+        const csrfTokenName = '<?= csrf_token() ?>';
+        const csrfTokenValue = 'test_token';
+
+        const payload = {
+            '3ls_id': threeLsId,
+            'names': twoLsNames,
+            [csrfTokenName]: csrfTokenValue
+        };
+
+        console.log('Payload being sent:', payload);
+        console.log('JSON stringified:', JSON.stringify(payload));
+
+        // Check if 3ls_id is in the payload
+        if (payload['3ls_id']) {
+            console.log('✓ 3ls_id is present:', payload['3ls_id']);
+        } else {
+            console.log('✗ 3ls_id is MISSING!');
+        }
+    </script>
+</body>
+
+</html>

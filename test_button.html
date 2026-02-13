@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Button Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="p-8 bg-gray-100">
+    <h1 class="text-2xl mb-4">Button Visibility Test</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="mb-4">Test Buttons:</h2>
+        
+        <!-- Test 1: Purple button (like Add/Edit Circle) -->
+        <div class="mb-4">
+            <label class="block mb-2">Purple Button (Add/Edit Circle style):</label>
+            <div id="test1" class="mt-3" style="display:block;">
+                <button type="button" class="w-full px-4 py-2 bg-purple-600 text-white font-medium rounded-lg shadow hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition">
+                    <i class="fas fa-circle-notch mr-2"></i>Add/Edit Circle
+                </button>
+            </div>
+        </div>
+        
+        <!-- Test 2: Blue button (like Edit Blocks) -->
+        <div class="mb-4">
+            <label class="block mb-2">Blue Button (Edit Blocks style):</label>
+            <div id="test2" class="mt-3" style="display:block;">
+                <button type="button" class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition">
+                    <i class="fas fa-edit mr-2"></i>Edit Blocks
+                </button>
+            </div>
+        </div>
+        
+        <!-- Test 3: Toggle visibility -->
+        <div class="mb-4">
+            <button onclick="toggleButton()" class="px-4 py-2 bg-green-600 text-white rounded">
+                Toggle Purple Button
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        function toggleButton() {
+            const btn = document.getElementById('test1');
+            if (btn.style.display === 'none') {
+                btn.style.display = 'block';
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

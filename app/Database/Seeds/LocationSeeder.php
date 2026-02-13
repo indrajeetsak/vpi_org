@@ -1,0 +1,130 @@
+<?php
+
+namespace App\Database\Seeds;
+
+use CodeIgniter\Database\Seeder;
+
+class LocationSeeder extends Seeder
+{
+    public function run()
+    {
+        // Seeding States
+        $states = [
+            ['name' => 'Andhra Pradesh'],
+            ['name' => 'Arunachal Pradesh'],
+            ['name' => 'Assam'],
+            ['name' => 'Bihar'],
+            ['name' => 'Chhattisgarh'],
+            ['name' => 'Goa'],
+            ['name' => 'Gujarat'],
+            ['name' => 'Haryana'],
+            ['name' => 'Himachal Pradesh'],
+            ['name' => 'Jharkhand'],
+            ['name' => 'Karnataka'],
+            ['name' => 'Kerala'],
+            ['name' => 'Madhya Pradesh'],
+            ['name' => 'Maharashtra'],
+            ['name' => 'Manipur'],
+            ['name' => 'Meghalaya'],
+            ['name' => 'Mizoram'],
+            ['name' => 'Nagaland'],
+            ['name' => 'Odisha'],
+            ['name' => 'Punjab'],
+            ['name' => 'Rajasthan'],
+            ['name' => 'Sikkim'],
+            ['name' => 'Tamil Nadu'],
+            ['name' => 'Telangana'],
+            ['name' => 'Tripura'],
+            ['name' => 'Uttar Pradesh'],
+            ['name' => 'Uttarakhand'],
+            ['name' => 'West Bengal'],
+        ];
+        $this->db->table('states')->insertBatch($states);
+
+        // Seeding Districts for Uttar Pradesh
+        // Note: You may need to adjust the state_id to match the ID of 'Uttar Pradesh' in your states table.
+        $state_id = 26; // Assuming 26 is the ID for Uttar Pradesh
+
+        $districts = [
+            ['name' => 'Agra', 'state_id' => $state_id],
+            ['name' => 'Aligarh', 'state_id' => $state_id],
+            ['name' => 'Allahabad (Prayagraj)', 'state_id' => $state_id],
+            ['name' => 'Ambedkar Nagar', 'state_id' => $state_id],
+            ['name' => 'Amethi', 'state_id' => $state_id],
+            ['name' => 'Amroha', 'state_id' => $state_id],
+            ['name' => 'Auraiya', 'state_id' => $state_id],
+            ['name' => 'Ayodhya', 'state_id' => $state_id],
+            ['name' => 'Azamgarh', 'state_id' => $state_id],
+            ['name' => 'Baghpat', 'state_id' => $state_id],
+            ['name' => 'Bahraich', 'state_id' => $state_id],
+            ['name' => 'Ballia', 'state_id' => $state_id],
+            ['name' => 'Balrampur', 'state_id' => $state_id],
+            ['name' => 'Banda', 'state_id' => $state_id],
+            ['name' => 'Barabanki', 'state_id' => $state_id],
+            ['name' => 'Bareilly', 'state_id' => $state_id],
+            ['name' => 'Basti', 'state_id' => $state_id],
+            ['name' => 'Bhadohi', 'state_id' => $state_id],
+            ['name' => 'Bijnor', 'state_id' => $state_id],
+            ['name' => 'Budaun', 'state_id' => $state_id],
+            ['name' => 'Bulandshahr', 'state_id' => $state_id],
+            ['name' => 'Chandauli', 'state_id' => $state_id],
+            ['name' => 'Chitrakoot', 'state_id' => $state_id],
+            ['name' => 'Deoria', 'state_id' => $state_id],
+            ['name' => 'Etah', 'state_id' => $state_id],
+            ['name' => 'Etawah', 'state_id' => $state_id],
+            ['name' => 'Farrukhabad', 'state_id' => $state_id],
+            ['name' => 'Fatehpur', 'state_id' => $state_id],
+            ['name' => 'Firozabad', 'state_id' => $state_id],
+            ['name' => 'Gautam Buddha Nagar (Noida)', 'state_id' => $state_id],
+            ['name' => 'Ghaziabad', 'state_id' => $state_id],
+            ['name' => 'Ghazipur', 'state_id' => $state_id],
+            ['name' => 'Gonda', 'state_id' => $state_id],
+            ['name' => 'Gorakhpur', 'state_id' => $state_id],
+            ['name' => 'Hamirpur', 'state_id' => $state_id],
+            ['name' => 'Hapur', 'state_id' => $state_id],
+            ['name' => 'Hardoi', 'state_id' => $state_id],
+            ['name' => 'Hathras', 'state_id' => $state_id],
+            ['name' => 'Jalaun', 'state_id' => $state_id],
+            ['name' => 'Jaunpur', 'state_id' => $state_id],
+            ['name' => 'Jhansi', 'state_id' => $state_id],
+            ['name' => 'Kannauj', 'state_id' => $state_id],
+            ['name' => 'Kanpur Dehat', 'state_id' => $state_id],
+            ['name' => 'Kanpur Nagar', 'state_id' => $state_id],
+            ['name' => 'Kasganj', 'state_id' => $state_id],
+            ['name' => 'Kaushambi', 'state_id' => $state_id],
+            ['name' => 'Kushinagar', 'state_id' => $state_id],
+            ['name' => 'Lakhimpur Kheri', 'state_id' => $state_id],
+            ['name' => 'Lalitpur', 'state_id' => $state_id],
+            ['name' => 'Lucknow', 'state_id' => $state_id],
+            ['name' => 'Maharajganj', 'state_id' => $state_id],
+            ['name' => 'Mahoba', 'state_id' => $state_id],
+            ['name' => 'Mainpuri', 'state_id' => $state_id],
+            ['name' => 'Mathura', 'state_id' => $state_id],
+            ['name' => 'Mau', 'state_id' => $state_id],
+            ['name' => 'Meerut', 'state_id' => $state_id],
+            ['name' => 'Mirzapur', 'state_id' => $state_id],
+            ['name' => 'Moradabad', 'state_id' => $state_id],
+            ['name' => 'Muzaffarnagar', 'state_id' => $state_id],
+            ['name' => 'Pilibhit', 'state_id' => $state_id],
+            ['name' => 'Pratapgarh', 'state_id' => $state_id],
+            ['name' => 'Prayagraj (Allahabad)', 'state_id' => $state_id],
+            ['name' => 'Raebareli', 'state_id' => $state_id],
+            ['name' => 'Rampur', 'state_id' => $state_id],
+            ['name' => 'Saharanpur', 'state_id' => $state_id],
+            ['name' => 'Sambhal', 'state_id' => $state_id],
+            ['name' => 'Sant Kabir Nagar', 'state_id' => $state_id],
+            ['name' => 'Sant Ravidas Nagar (Bhadohi)', 'state_id' => $state_id],
+            ['name' => 'Shahjahanpur', 'state_id' => $state_id],
+            ['name' => 'Shamli', 'state_id' => $state_id],
+            ['name' => 'Shravasti', 'state_id' => $state_id],
+            ['name' => 'Siddharthnagar', 'state_id' => $state_id],
+            ['name' => 'Sitapur', 'state_id' => $state_id],
+            ['name' => 'Sonbhadra', 'state_id' => $state_id],
+            ['name' => 'Sultanpur', 'state_id' => $state_id],
+            ['name' => 'Unnao', 'state_id' => $state_id],
+            ['name' => 'Varanasi', 'state_id' => $state_id],
+        ];
+
+        $this->db->table('districts')->insertBatch($districts);
+    }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "vpi-ob",
+  "version": "1.0.0",
+  "description": "VPI Office Bearer Portal",
+  "scripts": {
+    "css:dev": "npx tailwindcss -i ./src/input.css -o ./public/css/styles.css --watch",
+    "css:build": "npx tailwindcss -i ./src/input.css -o ./public/css/styles.css --minify"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.4.19"
+  }
+}
