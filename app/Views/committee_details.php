@@ -91,29 +91,9 @@
     </div>
 
     <!-- Results Section -->
-    <div id="results-container" class="bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-200" style="display: none;">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-indigo-600 text-white">
-                    <tr>
-                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">
-                            S. No.
-                        </th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">
-                            Post
-                        </th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">
-                            Image
-                        </th>
-                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">
-                            Name
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="results-body" class="bg-white divide-y divide-gray-200">
-                    <!-- Rows will be populated via JS -->
-                </tbody>
-            </table>
+    <div id="results-container" style="display: none;">
+        <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards will be populated via JS -->
         </div>
     </div>
     
@@ -358,8 +338,8 @@ $(document).ready(function() {
         }
 
         $('#loading').show();
-        $('#results-container').hide(); // Hide container instead of emptying to keep table structure
-        $('#results-body').empty();
+        $('#results-container').hide(); 
+        $('#results-grid').empty();
         $('#no-results').hide();
 
         $.ajax({
@@ -372,39 +352,40 @@ $(document).ready(function() {
                 $('#loading').hide();
                 if (response.length > 0) {
                     let html = '';
-                    response.forEach((member, index) => {
+                    response.forEach((member) => {
                         let photoHtml = '';
+                        // Use a larger image for the card
                         if (member.photo_url === 'No image') {
-                             photoHtml = '<span class="text-gray-400 text-sm italic">No image</span>';
-                        } else {
-                             photoHtml = `<div class="flex-shrink-0 h-12 w-12">
-                                            <img class="h-12 w-12 rounded-full object-cover ring-2 ring-white shadow-sm" src="${member.photo_url}" alt="${member.full_name}">
+                             photoHtml = `<div class="h-28 w-24 rounded-lg bg-gray-200 flex items-center justify-center text-gray-500">
+                                            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
                                           </div>`;
+                        } else {
+                             photoHtml = `<img class="h-28 w-24 rounded-lg object-cover shadow-sm border border-gray-200" src="${member.photo_url}" alt="${member.full_name}">`;
                         }
 
-                        let nameClass = member.full_name === 'Not appointed' ? 'text-red-500 italic font-medium' : 'text-gray-900 font-bold';
-                        let rowClass = member.full_name === 'Not appointed' ? 'bg-red-50/50' : 'hover:bg-indigo-50/50';
+                        let isAppointed = member.full_name !== 'Not appointed';
+                        let nameClass = isAppointed ? 'text-gray-900 font-bold' : 'text-red-500 italic font-medium';
+                        let postClass = 'text-black-600 font-semibold'; // Post name in red/specific color
 
                         html += `
-                        <tr class="${rowClass} transition-colors duration-150 border-b border-gray-200 last:border-0">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
-                                ${index + 1}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-indigo-100 text-indigo-800 shadow-sm border border-indigo-200">
-                                    ${member.post_name}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="bg-white rounded-xl shadow border border-gray-200 p-4 transition duration-300 hover:shadow-lg flex items-center space-x-4">
+                            <div class="flex-shrink-0">
                                 ${photoHtml}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-base ${nameClass}">${member.full_name}</div>
-                            </td>
-                        </tr>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-base ${nameClass} truncate" title="${member.full_name}">
+                                    ${member.full_name}
+                                </p>
+                                <p class="text-xs ${postClass} uppercase font-bold tracking-wide mt-1 truncate" title="${member.post_name}">
+                                    ${member.post_name}
+                                </p>
+                            </div>
+                        </div>
                         `;
                     });
-                    $('#results-body').html(html);
+                    $('#results-grid').html(html);
                     $('#results-container').fadeIn();
                 } else {
                     $('#no-results').fadeIn();

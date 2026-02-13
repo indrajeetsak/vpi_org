@@ -1221,7 +1221,7 @@ public function viewApplication($applicationId)
             $data['password'] = $password; // Model handles hashing
         }
 
-        $this->adminModel->update($id, $data);
+        $this->adminModel->skipValidation(true)->update($id, $data);
         return redirect()->to('admin/manage-admins')->with('success', 'Admin updated successfully');
     }
 
