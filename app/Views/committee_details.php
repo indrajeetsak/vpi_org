@@ -367,7 +367,7 @@ $(document).ready(function() {
 
                         let isAppointed = member.full_name !== 'Not appointed';
                         let nameClass = isAppointed ? 'text-gray-900 font-bold' : 'text-red-500 italic font-medium';
-                        let postClass = 'text-black-600 font-semibold'; // Post name in red/specific color
+                        let postClass = 'text-gray-900 font-semibold'; // Post name in red/specific color
 
                         html += `
                         <div class="bg-white rounded-xl shadow border border-gray-200 p-4 transition duration-300 hover:shadow-lg flex items-center space-x-4">

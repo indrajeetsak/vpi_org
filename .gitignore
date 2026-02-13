@@ -124,3 +124,9 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+# Environment Specific Configs
+app/Config/Database.php
+app/Config/App.php
+public/.htaccess
+.htaccess
