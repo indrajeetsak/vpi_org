@@ -10,7 +10,7 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h2 class="text-2xl font-extrabold text-gray-800 tracking-tight"><?= esc($levelLabel) ?> Committees</h2>
-            <p class="text-gray-500 mt-1">Showing all constituted committees at the <?= esc($levelLabel) ?> level</p>
+            <p class="text-gray-500 mt-1">Showing all constituted committees at the <?= esc($levelLabel) ?>l</p>
         </div>
         <a href="<?= site_url('admin/dashboard') ?>" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg shadow hover:bg-gray-700 transition text-sm">
             <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
@@ -22,7 +22,7 @@
     <div class="bg-indigo-800 rounded-xl p-5 shadow border border-gray-700 flex items-center justify-between">
         <div>
             <p class="text-sm text-gray-300 uppercase tracking-wide font-semibold">Total Constituted Committees</p>
-            <p class="text-3xl font-extrabold text-white mt-1"><?= count($committees) ?></p>
+            <p class="text-3xl font-extrabold text-black mt-1"><?= count($committees) ?></p>
         </div>
         <div class="bg-gray-700 p-4 rounded-2xl text-indigo-400">
             <i class="fas fa-building text-2xl"></i>
@@ -72,7 +72,7 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                        <a href="<?= site_url('admin/usersList?search_term=' . urlencode($committee['loc1'] ?? '')) ?>"
+                        <a href="<?= site_url('admin/usersList?level_id=' . (int)$levelId . '&location_id=' . urlencode($committee['location_id'] ?? '')) ?>"
                            class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition shadow-sm">
                             <i class="fas fa-eye mr-1"></i> View Members
                         </a>

@@ -52,10 +52,11 @@ class Admin extends BaseController
             $ids = $appointmentModel
                 ->where('level_id', $levelId)
                 ->where('status', 'approved')
+                ->where($locationField . ' IS NOT NULL')
                 ->distinct()
                 ->findColumn($locationField);
-            
-            return $ids ? count(array_unique($ids)) : 0;
+
+            return $ids ? count(array_filter(array_unique($ids), fn($v) => $v !== null)) : 0;
         };
 
         // 1. State Level (ID 11)
@@ -139,12 +140,13 @@ class Admin extends BaseController
         } elseif ($levelId == 6) {
             // MLA Level: mla_area, district, state
             $q = $db->query("
-                SELECT m.name AS loc1, d.name AS loc2, s.name AS loc3, NULL AS loc4,
+                SELECT COALESCE(m.name, CONCAT(COALESCE(d.name, 'Unknown District'), ' (Area #', a.mla_area_id, ')')) AS loc1,
+                       d.name AS loc2, s.name AS loc3, NULL AS loc4,
                        COUNT(a.id) AS member_count, a.mla_area_id AS location_id
                 FROM appointments a
-                INNER JOIN mla_area m ON m.id = a.mla_area_id
-                INNER JOIN districts d ON d.id = m.district_id
-                INNER JOIN states s ON s.id = d.state_id
+                LEFT JOIN mla_area m ON m.id = a.mla_area_id
+                LEFT JOIN districts d ON d.id = COALESCE(m.district_id, a.district_id)
+                LEFT JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 6 AND a.status = 'approved' AND a.mla_area_id IS NOT NULL
                 GROUP BY a.mla_area_id, m.name, d.name, s.name
                 ORDER BY s.name ASC, d.name ASC, m.name ASC
@@ -154,12 +156,13 @@ class Admin extends BaseController
         } elseif ($levelId == 5) {
             // Block Level: block, district, state
             $q = $db->query("
-                SELECT b.name AS loc1, d.name AS loc2, s.name AS loc3, NULL AS loc4,
+                SELECT COALESCE(b.name, CONCAT(COALESCE(d.name, 'Unknown District'), ' (Block #', a.block_id, ')')) AS loc1,
+                       d.name AS loc2, s.name AS loc3, NULL AS loc4,
                        COUNT(a.id) AS member_count, a.block_id AS location_id
                 FROM appointments a
-                INNER JOIN blocks b ON b.id = a.block_id
-                INNER JOIN districts d ON d.id = b.district_id
-                INNER JOIN states s ON s.id = d.state_id
+                LEFT JOIN blocks b ON b.id = a.block_id
+                LEFT JOIN districts d ON d.id = COALESCE(b.district_id, a.district_id)
+                LEFT JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 5 AND a.status = 'approved' AND a.block_id IS NOT NULL
                 GROUP BY a.block_id, b.name, d.name, s.name
                 ORDER BY s.name ASC, d.name ASC, b.name ASC
@@ -169,11 +172,12 @@ class Admin extends BaseController
         } elseif ($levelId == 7) {
             // MP (1LS) Level: mp constituency, state
             $q = $db->query("
-                SELECT l.name AS loc1, s.name AS loc2, NULL AS loc3, NULL AS loc4,
+                SELECT COALESCE(l.name, CONCAT(COALESCE(s.name, 'Unknown State'), ' (LS #', a.ls_id, ')')) AS loc1,
+                       s.name AS loc2, NULL AS loc3, NULL AS loc4,
                        COUNT(a.id) AS member_count, a.ls_id AS location_id
                 FROM appointments a
-                INNER JOIN ls l ON l.id = a.ls_id
-                INNER JOIN states s ON s.id = l.state_id
+                LEFT JOIN ls l ON l.id = a.ls_id
+                LEFT JOIN states s ON s.id = COALESCE(l.state_id, a.state_id)
                 WHERE a.level_id = 7 AND a.status = 'approved' AND a.ls_id IS NOT NULL
                 GROUP BY a.ls_id, l.name, s.name
                 ORDER BY s.name ASC, l.name ASC
@@ -183,13 +187,14 @@ class Admin extends BaseController
         } elseif ($levelId == 3) {
             // Sector Level: sector, block, district, state
             $q = $db->query("
-                SELECT sc.name AS loc1, b.name AS loc2, d.name AS loc3, s.name AS loc4,
+                SELECT COALESCE(sc.name, CONCAT(COALESCE(b.name, 'Unknown Block'), ' (Sector #', a.sector_id, ')')) AS loc1,
+                       b.name AS loc2, d.name AS loc3, s.name AS loc4,
                        COUNT(a.id) AS member_count, a.sector_id AS location_id
                 FROM appointments a
-                INNER JOIN sectors sc ON sc.id = a.sector_id
-                INNER JOIN blocks b ON b.id = sc.block_id
-                INNER JOIN districts d ON d.id = b.district_id
-                INNER JOIN states s ON s.id = d.state_id
+                LEFT JOIN sectors sc ON sc.id = a.sector_id
+                LEFT JOIN blocks b ON b.id = COALESCE(sc.block_id, a.block_id)
+                LEFT JOIN districts d ON d.id = COALESCE(b.district_id, a.district_id)
+                LEFT JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 3 AND a.status = 'approved' AND a.sector_id IS NOT NULL
                 GROUP BY a.sector_id, sc.name, b.name, d.name, s.name
                 ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC
@@ -404,6 +409,8 @@ class Admin extends BaseController
     public function users() // Was usersList in MD
     {
         $searchTerm = $this->request->getGet('search_term');
+        $filterLevelId    = $this->request->getGet('level_id');
+        $filterLocationId = $this->request->getGet('location_id');
 
         // Start building the query.
         $builder = $this->userModel;
@@ -447,30 +454,42 @@ class Admin extends BaseController
         $builder->join('admins', 'admins.mobile = users.mobile', 'left');
 
         // Filter for active, non-admin users.
-        // We filter based on Appointment status and absence from admins table
         $builder->where('appointments.status', 'approved')
                 ->where('admins.id IS NULL');
 
-        // Add search functionality if a search term is provided.
-        // Add search functionality if a search term is provided.
+        // ── Exact ID-based location filter (from committee_detail "View Members") ──
+        // Map level_id → the appointments column that holds the location ID
+        $levelLocationFieldMap = [
+            11 => 'appointments.state_id',
+            16 => 'appointments.district_id',
+            6  => 'appointments.mla_area_id',
+            5  => 'appointments.block_id',
+            7  => 'appointments.ls_id',
+            3  => 'appointments.sector_id',
+        ];
+
+        if (!empty($filterLevelId) && !empty($filterLocationId) && isset($levelLocationFieldMap[(int)$filterLevelId])) {
+            $locField = $levelLocationFieldMap[(int)$filterLevelId];
+            $builder->where('appointments.level_id', (int)$filterLevelId)
+                    ->where($locField, (int)$filterLocationId);
+        }
+
+        // ── Text search (general search bar) ──
         if (!empty($searchTerm)) {
             $keywords = explode(' ', $searchTerm);
             foreach ($keywords as $word) {
-                if (trim($word) === '') continue; // Skip empty spaces
+                if (trim($word) === '') continue;
                 
                 $builder->groupStart()
                         ->like('users.first_name', $word)
                         ->orLike('users.last_name', $word)
                         ->orLike('users.email', $word)
                         ->orLike('users.mobile', $word)
-                        // Post Names
                         ->orLike('alp.name', $word)
                         ->orLike('clp.name', $word)
                         ->orLike('glp.name', $word)
                         ->orLike('mlp.name', $word)
-                         // Level Name
                         ->orLike('levels.name', $word)
-                         // Location Names
                         ->orLike('s.name', $word)
                         ->orLike('d.name', $word)
                         ->orLike('b.name', $word)

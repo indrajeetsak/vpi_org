@@ -158,13 +158,25 @@
 
             if (stateId) {
                 stateActionsDiv.style.display = 'block';
-                fetch(`<?= site_url('admin/locations/get_districts_by_state') ?>/${stateId}`, {
+                fetch(`<?= site_url('admin/locations/get_districts_by_state') ?>/${stateId}`.replace(/^http:\/\//i, 'https://'), {
                     method: 'GET',
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
                     }
                 })
-                .then(response => response.json())
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        // Strip any trailing HTML/DebugBar garbage that CI4 might append
+                        const jsonEnd = text.lastIndexOf('}') + 1;
+                        const cleanJson = text.substring(0, jsonEnd);
+                        return JSON.parse(cleanJson);
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', text);
+                        throw e;
+                    }
+                })
                 .then(data => {
                     districtSelect.innerHTML = '<option value="">-- Select District --</option>';
                     if (data.success && data.districts.length > 0) {
@@ -208,13 +220,23 @@
                 editActionsDiv.style.display = 'flex';
                 
                 // Load blocks for selected district
-                fetch(`<?= site_url('admin/locations/get_blocks_by_district') ?>/${districtId}`, {
+                fetch(`<?= site_url('admin/locations/get_blocks_by_district') ?>/${districtId}`.replace(/^http:\/\//i, 'https://'), {
                     method: 'GET',
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
                     }
                 })
-                .then(response => response.json())
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        const jsonEnd = text.lastIndexOf('}') + 1;
+                        return JSON.parse(text.substring(0, jsonEnd));
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', text);
+                        throw e;
+                    }
+                })
                 .then(data => {
                     blockSelect.innerHTML = '<option value="">-- Select Block (Optional) --</option>';
                     if (data.success && data.blocks.length > 0) {
@@ -255,13 +277,23 @@
                 blockActionsDiv.style.display = 'block';
 
                 // Load sectors for selected block
-                fetch(`<?= site_url('admin/locations/get_sectors_by_block') ?>/${blockId}`, {
+                fetch(`<?= site_url('admin/locations/get_sectors_by_block') ?>/${blockId}`.replace(/^http:\/\//i, 'https://'), {
                     method: 'GET',
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
                     }
                 })
-                .then(response => response.json())
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        const jsonEnd = text.lastIndexOf('}') + 1;
+                        return JSON.parse(text.substring(0, jsonEnd));
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', text);
+                        throw e;
+                    }
+                })
                 .then(data => {
                     sectorSelect.innerHTML = '<option value="">-- Select Sector --</option>';
                     if (data.success && data.sectors.length > 0) {
@@ -311,13 +343,18 @@
             }
 
             // Fetch existing blocks for the selected district
-            fetch(`<?= site_url('admin/locations/get_blocks_by_district') ?>/${districtId}`, {
+            fetch(`<?= site_url('admin/locations/get_blocks_by_district') ?>/${districtId}`.replace(/^http:\/\//i, 'https://'), {
                 method: 'GET',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => response.text())
+            .then(text => {
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                return JSON.parse(text.substring(0, jsonEnd));
+            })
             .then(data => {
                 if (data.success && data.blocks) {
                     const blockNames = data.blocks.map(b => b.name).join('\n');
@@ -350,13 +387,18 @@
             }
 
             // Fetch existing MLA areas for the selected district
-            fetch(`<?= site_url('admin/locations/get_mla_areas_by_district') ?>/${districtId}`, {
+            fetch(`<?= site_url('admin/locations/get_mla_areas_by_district') ?>/${districtId}`.replace(/^http:\/\//i, 'https://'), {
                 method: 'GET',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => response.text())
+            .then(text => {
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                return JSON.parse(text.substring(0, jsonEnd));
+            })
             .then(data => {
                 if (data.success && data.mla_areas) {
                     const mlaAreaNames = data.mla_areas.map(m => m.name).join('\n');
@@ -389,13 +431,18 @@
             }
 
             // Fetch existing sectors for the selected block
-            fetch(`<?= site_url('admin/locations/get_sectors_by_block') ?>/${blockId}`, {
+            fetch(`<?= site_url('admin/locations/get_sectors_by_block') ?>/${blockId}`.replace(/^http:\/\//i, 'https://'), {
                 method: 'GET',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => response.text())
+            .then(text => {
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                return JSON.parse(text.substring(0, jsonEnd));
+            })
             .then(data => {
                 if (data.success && data.sectors) {
                     const sectorNames = data.sectors.map(c => c.name).join('\n');
@@ -428,13 +475,18 @@
             }
 
             // Fetch existing villages for the selected sector
-            fetch(`<?= site_url('admin/locations/get_villages_by_sector') ?>/${sectorId}`, {
+            fetch(`<?= site_url('admin/locations/get_villages_by_sector') ?>/${sectorId}`.replace(/^http:\/\//i, 'https://'), {
                 method: 'GET',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => response.text())
+            .then(text => {
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                return JSON.parse(text.substring(0, jsonEnd));
+            })
             .then(data => {
                 if (data.success && data.villages) {
                     const villageNames = data.villages.map(v => v.name).join('\n');
@@ -467,8 +519,12 @@
             addDistrictModal.style.display = 'block';
             document.getElementById('addDistrictStateId').value = stateId;
 
-            fetch(`<?= site_url('admin/locations/get_districts_by_state') ?>/${stateId}`)
-                .then(response => response.json())
+            fetch(`<?= site_url('admin/locations/get_districts_by_state') ?>/${stateId}`.replace(/^http:\/\//i, 'https://'), { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+                .then(response => response.text())
+                .then(text => {
+                    const jsonEnd = text.lastIndexOf('}') + 1;
+                    return JSON.parse(text.substring(0, jsonEnd));
+                })
                 .then(data => {
                     if (data.success && data.districts.length > 0) {
                         districtNamesTextarea.value = data.districts.map(d => d.name).join(', ');
@@ -490,11 +546,16 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfTokenValue
                 },
                 body: JSON.stringify({ state_id: stateId, names: districtNames })
             })
-            .then(response => response.json())
+            .then(response => response.text())
+            .then(text => {
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                return JSON.parse(text.substring(0, jsonEnd));
+            })
             .then(data => {
                 if (data.success) {
                     showFeedback(data.message || 'Districts saved successfully.', 'success');
@@ -561,11 +622,16 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfTokenValue
                 },
                 body: JSON.stringify(requestData)
             })
-            .then(response => response.json())
+            .then(response => response.text())
+            .then(text => {
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                return JSON.parse(text.substring(0, jsonEnd));
+            })
             .then(data => {
                 console.log('Save response:', data);
                 if (data.success) {
@@ -573,12 +639,14 @@
                     // Refresh the data by re-fetching
                     if (dataType === 'blocks') {
                         // Re-fetch blocks
-                        fetch(`<?= site_url('admin/locations/get_blocks_by_district') ?>/${districtId}`, {
+                        fetch(`<?= site_url('admin/locations/get_blocks_by_district') ?>/${districtId}`.replace(/^http:\/\//i, 'https://'), {
                             method: 'GET',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(response => response.text())
+                        .then(text => {
+                            const jsonEnd = text.lastIndexOf('}') + 1;
+                            const data = JSON.parse(text.substring(0, jsonEnd));
                             if (data.success && data.blocks) {
                                 const blockNames = data.blocks.map(b => b.name).join('\n');
                                 dataTextArea.value = blockNames;
@@ -586,12 +654,14 @@
                         });
                     } else if (dataType === 'mla_areas') {
                         // Re-fetch MLA areas
-                        fetch(`<?= site_url('admin/locations/get_mla_areas_by_district') ?>/${districtId}`, {
+                        fetch(`<?= site_url('admin/locations/get_mla_areas_by_district') ?>/${districtId}`.replace(/^http:\/\//i, 'https://'), {
                             method: 'GET',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(response => response.text())
+                        .then(text => {
+                            const jsonEnd = text.lastIndexOf('}') + 1;
+                            const data = JSON.parse(text.substring(0, jsonEnd));
                             if (data.success && data.mla_areas) {
                                 const mlaAreaNames = data.mla_areas.map(m => m.name).join('\n');
                                 dataTextArea.value = mlaAreaNames;
@@ -599,12 +669,14 @@
                         });
                     } else if (dataType === 'sectors') {
                         // Re-fetch sectors
-                        fetch(`<?= site_url('admin/locations/get_sectors_by_block') ?>/${blockId}`, {
+                        fetch(`<?= site_url('admin/locations/get_sectors_by_block') ?>/${blockId}`.replace(/^http:\/\//i, 'https://'), {
                             method: 'GET',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(response => response.text())
+                        .then(text => {
+                            const jsonEnd = text.lastIndexOf('}') + 1;
+                            const data = JSON.parse(text.substring(0, jsonEnd));
                             if (data.success && data.sectors) {
                                 const sectorNames = data.sectors.map(c => c.name).join(', ');
                                 dataTextArea.value = sectorNames;
@@ -612,12 +684,14 @@
                         });
                     } else if (dataType === 'villages') {
                         // Re-fetch villages
-                        fetch(`<?= site_url('admin/locations/get_villages_by_sector') ?>/${sectorId}`, {
+                        fetch(`<?= site_url('admin/locations/get_villages_by_sector') ?>/${sectorId}`.replace(/^http:\/\//i, 'https://'), {
                             method: 'GET',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(response => response.text())
+                        .then(text => {
+                            const jsonEnd = text.lastIndexOf('}') + 1;
+                            const data = JSON.parse(text.substring(0, jsonEnd));
                             if (data.success && data.villages) {
                                 const villageNames = data.villages.map(v => v.name).join('\n');
                                 dataTextArea.value = villageNames;
