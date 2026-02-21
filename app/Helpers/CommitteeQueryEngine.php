@@ -193,13 +193,20 @@ PROMPT;
             ]]
         ]);
 
+        if (!function_exists('curl_init')) {
+            return ['error' => 'cURL is not available on this server.'];
+        }
+
         $ch = curl_init($this->geminiEndpoint . '?key=' . $this->apiKey);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $payload,
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_TIMEOUT        => 20,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_SSL_VERIFYPEER => false,  // fixes SSL cert issues on some shared hosts
+            CURLOPT_SSL_VERIFYHOST => false,
         ]);
 
         $raw      = curl_exec($ch);
@@ -207,8 +214,8 @@ PROMPT;
         $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        if ($curlErr) {
-            return ['error' => 'Network error calling Gemini: ' . $curlErr];
+        if ($raw === false || $curlErr) {
+            return ['error' => 'Gemini cURL failed: ' . $curlErr];
         }
         if ($httpCode !== 200) {
             $decoded = json_decode($raw, true);

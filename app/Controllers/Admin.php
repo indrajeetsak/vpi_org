@@ -209,22 +209,34 @@ class Admin extends BaseController
      */
     public function queryCommittee()
     {
-        $question = trim($this->request->getPost('question') ?? '');
-
-        if (empty($question)) {
-            return $this->response->setJSON(['error' => 'Please enter a question.']);
-        }
+        // Suppress notices/warnings that might corrupt JSON output on live servers
+        $prevErrLevel = error_reporting(E_ERROR | E_PARSE);
+        ob_start(); // capture any stray output (warnings, notices, etc.)
 
         try {
+            $question = trim($this->request->getPost('question') ?? '');
+
+            if (empty($question)) {
+                ob_end_clean();
+                error_reporting($prevErrLevel);
+                return $this->response->setJSON(['error' => 'Please enter a question.']);
+            }
+
             $engine = new \App\Helpers\CommitteeQueryEngine();
             $result = $engine->parse($question);
+
+            ob_end_clean(); // discard any stray output
+            error_reporting($prevErrLevel);
             return $this->response->setJSON($result);
+
         } catch (\Throwable $e) {
+            ob_end_clean();
+            error_reporting($prevErrLevel);
             return $this->response->setJSON([
-                'error'  => 'Query error: ' . $e->getMessage(),
-                'answer' => '',
-                'results'=> [],
-                'type'   => 'error',
+                'error'   => $e->getMessage(),
+                'answer'  => '',
+                'results' => [],
+                'type'    => 'error',
             ]);
         }
     }
