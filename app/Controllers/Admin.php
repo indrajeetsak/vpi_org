@@ -140,7 +140,7 @@ class Admin extends BaseController
         } elseif ($levelId == 6) {
             // MLA Level: mla_area, district, state
             $q = $db->query("
-                SELECT COALESCE(m.name, CONCAT(COALESCE(d.name, 'Unknown District'), ' (Area #', a.mla_area_id, ')')) AS loc1,
+                SELECT COALESCE(m.name, CONCAT(COALESCE(d.name, 'Unknown District'), ' Area')) AS loc1,
                        d.name AS loc2, s.name AS loc3, NULL AS loc4,
                        COUNT(a.id) AS member_count, a.mla_area_id AS location_id
                 FROM appointments a
@@ -156,7 +156,7 @@ class Admin extends BaseController
         } elseif ($levelId == 5) {
             // Block Level: block, district, state
             $q = $db->query("
-                SELECT COALESCE(b.name, CONCAT(COALESCE(d.name, 'Unknown District'), ' (Block #', a.block_id, ')')) AS loc1,
+                SELECT COALESCE(b.name, CONCAT(COALESCE(d.name, 'Unknown District'), ' Block')) AS loc1,
                        d.name AS loc2, s.name AS loc3, NULL AS loc4,
                        COUNT(a.id) AS member_count, a.block_id AS location_id
                 FROM appointments a
@@ -172,7 +172,7 @@ class Admin extends BaseController
         } elseif ($levelId == 7) {
             // MP (1LS) Level: mp constituency, state
             $q = $db->query("
-                SELECT COALESCE(l.name, CONCAT(COALESCE(s.name, 'Unknown State'), ' (LS #', a.ls_id, ')')) AS loc1,
+                SELECT COALESCE(l.name, CONCAT(COALESCE(s.name, 'Unknown State'), ' LS')) AS loc1,
                        s.name AS loc2, NULL AS loc3, NULL AS loc4,
                        COUNT(a.id) AS member_count, a.ls_id AS location_id
                 FROM appointments a
@@ -187,7 +187,7 @@ class Admin extends BaseController
         } elseif ($levelId == 3) {
             // Sector Level: sector, block, district, state
             $q = $db->query("
-                SELECT COALESCE(sc.name, CONCAT(COALESCE(b.name, 'Unknown Block'), ' (Sector #', a.sector_id, ')')) AS loc1,
+                SELECT COALESCE(sc.name, CONCAT(COALESCE(b.name, 'Unknown Block'), ' Sector')) AS loc1,
                        b.name AS loc2, d.name AS loc3, s.name AS loc4,
                        COUNT(a.id) AS member_count, a.sector_id AS location_id
                 FROM appointments a
