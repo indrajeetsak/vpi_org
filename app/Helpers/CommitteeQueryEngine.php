@@ -30,7 +30,7 @@ class CommitteeQueryEngine
     public function __construct()
     {
         $this->db     = \Config\Database::connect();
-        $this->apiKey = env('GEMINI_API_KEY', '');
+        $this->apiKey = env('GEMINI_API_KEY') ?: 'AIzaSyCtprsHU8jCd7DPgulgjnGlFlIQmUIzIdw';
     }
 
     // ─────────────────────────────────────────────────────────────

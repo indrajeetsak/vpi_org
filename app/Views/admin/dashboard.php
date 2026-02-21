@@ -24,14 +24,14 @@
         </div>
 
         <!-- ═══ Committee Query Assistant ═══ -->
-        <div class="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 rounded-2xl p-6 shadow-xl border border-indigo-700">
+        <div class="bg-white rounded-2xl p-6 shadow-xl border border-indigo-200">
             <div class="flex items-center gap-3 mb-4">
                 <div class="bg-indigo-700 p-2.5 rounded-xl">
                     <i class="fas fa-robot text-indigo-200 text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-white">Committee Query Assistant</h3>
-                    <p class="text-indigo-300 text-xs">Ask any question about your committees in plain English</p>
+                    <h3 class="text-lg font-bold text-gray-900">Committee Query Assistant</h3>
+                    <p class="text-gray-500 text-xs">Ask any question about your committees in plain English</p>
                 </div>
             </div>
 
@@ -39,7 +39,7 @@
                 <input id="cqInput"
                     type="text"
                     placeholder="e.g. &quot;Who is president of Goalpara district?&quot; or &quot;How many posts are occupied in bajli block?&quot;"
-                    class="flex-1 bg-indigo-950/60 border border-indigo-600 text-white placeholder-indigo-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"
+                    class="flex-1 bg-gray-50 border border-indigo-300 text-gray-900 placeholder-gray-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"
                 />
                 <button id="cqBtn"
                     onclick="runCommitteeQuery()"
@@ -60,23 +60,23 @@
                 <button type="button"
                     onclick="document.getElementById('cqInput').value=this.dataset.q; runCommitteeQuery()"
                     data-q="<?= esc($hint) ?>"
-                    class="text-xs bg-indigo-800/60 hover:bg-indigo-700 text-indigo-200 px-3 py-1 rounded-full border border-indigo-700 transition cursor-pointer">
+                    class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 transition cursor-pointer">
                     <?= esc($hint) ?>
                 </button>
                 <?php endforeach; ?>
             </div>
 
             <!-- Answer Area -->
-            <div id="cqResult" class="hidden mt-5 bg-indigo-950/50 rounded-xl border border-indigo-700 overflow-hidden">
-                <div class="px-4 py-3 border-b border-indigo-800 flex items-center gap-2">
-                    <i class="fas fa-comment-dots text-indigo-300"></i>
-                    <span id="cqAnswerText" class="text-white text-sm font-medium"></span>
+            <div id="cqResult" class="hidden mt-5 bg-gray-50 rounded-xl border border-indigo-200 overflow-hidden">
+                <div class="px-4 py-3 border-b border-indigo-100 flex items-center gap-2">
+                    <i class="fas fa-comment-dots text-indigo-500"></i>
+                    <span id="cqAnswerText" class="text-gray-900 text-sm font-medium"></span>
                 </div>
                 <div id="cqResultCards" class="p-4"></div>
             </div>
 
             <!-- Loading -->
-            <div id="cqLoading" class="hidden mt-4 flex items-center gap-2 text-indigo-300 text-sm">
+            <div id="cqLoading" class="hidden mt-4 flex items-center gap-2 text-indigo-500 text-sm">
                 <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>

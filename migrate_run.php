@@ -5,16 +5,15 @@
  * VPI-OB — Browser-Based Database Migration Runner
  * ============================================================
  * USAGE:
- *   1. Upload this file to your hosting — place it OUTSIDE
- *      the `public/` folder, in the project root (same level
- *      as `app/`, `vendor/`, `spark`).
- *   2. Visit: https://org.votersparty.in/migrate_run.php
- *      (or hit it via the URL your host uses for the root)
+ *   1. Upload this file into the `public/` folder on your
+ *      hosting (e.g. public_html/public/ or wherever
+ *      org.votersparty.in points to).
+ *   2. Visit: https://org.votersparty.in/migrate_run.php?token=vpi_migrate_2026
  *   3. ⚠️  DELETE THIS FILE immediately after migration is done.
  *
  * SECURITY:
- *   - Set a secret token below. The URL must include
- *     ?token=YOUR_SECRET_TOKEN or the script will refuse to run.
+ *   Set a secret token below. The URL must include
+ *   ?token=YOUR_SECRET_TOKEN or the script will refuse to run.
  * ============================================================
  */
 
@@ -32,24 +31,29 @@ if (!isset($_GET['token']) || $_GET['token'] !== SECRET_TOKEN) {
 
 // ----------------------------------------------------------
 // Bootstrap CodeIgniter
+// The script lives in public/ so parent dir is the project root
 // ----------------------------------------------------------
-define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR);
+$projectRoot = dirname(__DIR__);   // one level up from public/
 
-// Find the framework path
-$frameworkPath = __DIR__ . '/vendor/codeigniter4/framework/system/';
-if (!is_dir($frameworkPath)) {
-    die('<h2>❌ Cannot find CodeIgniter framework. Make sure vendor/ exists.</h2>');
+define('FCPATH',    __DIR__ . DIRECTORY_SEPARATOR);
+define('SYSTEMPATH', $projectRoot . '/vendor/codeigniter4/framework/system/');
+define('APPPATH',    $projectRoot . '/app/');
+define('WRITEPATH',  $projectRoot . '/writable/');
+define('ROOTPATH',   $projectRoot . '/');
+
+if (!is_dir(SYSTEMPATH)) {
+    die('<h2 style="font-family:sans-serif;">❌ Cannot find CodeIgniter framework at: ' . SYSTEMPATH . '<br>Make sure vendor/ exists on the server.</h2>');
 }
 
-// Load CI constants & paths
-define('SYSTEMPATH', $frameworkPath);
-define('APPPATH',    __DIR__ . '/app/');
-define('WRITEPATH',  __DIR__ . '/writable/');
-define('ROOTPATH',   __DIR__ . '/');
 
-// Run in CLI-like mode so migrations print output
-$_SERVER['argv'] = ['spark', 'migrate'];
-$_SERVER['argc'] = 2;
+// Suppress PHP notices/warnings from CI4 running outside HTTP context
+error_reporting(E_ERROR | E_PARSE);
+
+// Fake CLI environment that CI4 needs
+$_SERVER['argv']    = ['migrate_run.php'];
+$_SERVER['argc']    = 1;
+$_SERVER['SCRIPT_FILENAME'] = __FILE__;
+if (!isset($_SERVER['HTTP_HOST'])) $_SERVER['HTTP_HOST'] = 'localhost';
 
 // ----------------------------------------------------------
 // Pretty HTML output helper
@@ -98,51 +102,46 @@ $applied  = 0;
 $skipped  = 0;
 
 try {
-    // Boot CodeIgniter without HTTP layer
-    require ROOTPATH . 'vendor/autoload.php';
+    // Check if shell_exec is available
+    if (!function_exists('shell_exec') || in_array('shell_exec', array_map('trim', explode(',', ini_get('disable_functions'))))) {
+        throw new \RuntimeException('shell_exec is disabled on this server. Please run migrations via SSH: php spark migrate');
+    }
 
-    $app = \Config\Services::codeigniter();
-    $app->initialize();
+    // Find PHP binary
+    $phpBin = PHP_BINARY ?: 'php';
 
-    // Run migrations via service
-    $migrate = \Config\Services::migrations();
+    // Run spark migrate from the project root
+    $cmd    = escapeshellarg($phpBin) . ' ' . escapeshellarg(ROOTPATH . 'spark') . ' migrate --no-ansi 2>&1';
+    $rawOut = shell_exec($cmd);
 
-    ob_start();
-    $result = $migrate->latest();
-    $raw    = ob_get_clean();
-
-    if ($result === false) {
-        $errors[] = 'Migration runner returned false. Check your migration files for errors.';
-        foreach ((array)$migrate->getCliMessages() as $msg) {
-            $errors[] = $msg;
-        }
+    if ($rawOut === null) {
+        $errors[] = 'shell_exec returned null — command may have failed silently.';
     } else {
-        // Parse CLI messages
-        $messages = $migrate->getCliMessages() ?? [];
-        foreach ($messages as $msg) {
-            $text = strip_tags(is_array($msg) ? implode(' ', $msg) : (string)$msg);
-            if (stripos($text, 'no migrations') !== false || stripos($text, 'already') !== false) {
-                $skipped++;
-                $warnings[] = $text;
-            } elseif (stripos($text, 'error') !== false || stripos($text, 'fail') !== false) {
-                $errors[] = $text;
+        // Parse spark output line by line
+        $lines = explode("\n", $rawOut);
+        foreach ($lines as $line) {
+            $line = trim(preg_replace('/\x1B\[[0-9;]*m/', '', $line)); // strip ANSI colors
+            if (empty($line)) continue;
+
+            if (stripos($line, 'error') !== false || stripos($line, 'fail') !== false || stripos($line, 'exception') !== false) {
+                $errors[] = $line;
+            } elseif (stripos($line, 'up to date') !== false || stripos($line, 'no migrations') !== false || stripos($line, 'nothing') !== false) {
+                $warnings[] = $line;
+            } elseif (stripos($line, 'migrating') !== false || stripos($line, 'migrated') !== false || stripos($line, 'running') !== false || stripos($line, 'done') !== false) {
+                $output[] = $line;
+                $applied++;
             } else {
-                $output[] = $text;
-                if (stripos($text, 'migrating') !== false || stripos($text, 'rolled') !== false) {
-                    $applied++;
-                }
+                $output[] = $line;
             }
         }
 
-        // If no messages at all, migrations were already up-to-date
-        if (empty($messages) && empty($errors)) {
-            $warnings[] = 'All migrations are already up to date. Nothing to run.';
+        if (empty($errors) && empty($output) && empty($warnings)) {
+            $warnings[] = 'All migrations are already up to date. Nothing new to run.';
         }
     }
 
 } catch (\Throwable $e) {
     $errors[] = get_class($e) . ': ' . $e->getMessage();
-    $errors[] = 'File: ' . $e->getFile() . ' (line ' . $e->getLine() . ')';
 }
 
 // ----------------------------------------------------------
