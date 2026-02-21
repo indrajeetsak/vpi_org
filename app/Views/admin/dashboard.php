@@ -23,6 +23,69 @@
             </div> -->
         </div>
 
+        <!-- ═══ Committee Query Assistant ═══ -->
+        <div class="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 rounded-2xl p-6 shadow-xl border border-indigo-700">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-indigo-700 p-2.5 rounded-xl">
+                    <i class="fas fa-robot text-indigo-200 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Committee Query Assistant</h3>
+                    <p class="text-indigo-300 text-xs">Ask any question about your committees in plain English</p>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <input id="cqInput"
+                    type="text"
+                    placeholder="e.g. &quot;Who is president of Goalpara district?&quot; or &quot;How many posts are occupied in bajli block?&quot;"
+                    class="flex-1 bg-indigo-950/60 border border-indigo-600 text-white placeholder-indigo-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"
+                />
+                <button id="cqBtn"
+                    onclick="runCommitteeQuery()"
+                    class="px-5 py-3 bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white font-semibold rounded-xl shadow transition-all duration-200 flex items-center gap-2 whitespace-nowrap">
+                    <i class="fas fa-search text-sm"></i> Ask
+                </button>
+            </div>
+
+            <!-- Example hints -->
+            <div class="flex flex-wrap gap-2 mt-3" id="cqHints">
+                <?php
+                $hints = [
+                    'Who is president of Assam state committee?',
+                    'How many posts are occupied in bajli block?',
+                    'List members of Goalpara district committee',
+                ];
+                foreach ($hints as $hint): ?>
+                <button type="button"
+                    onclick="document.getElementById('cqInput').value=this.dataset.q; runCommitteeQuery()"
+                    data-q="<?= esc($hint) ?>"
+                    class="text-xs bg-indigo-800/60 hover:bg-indigo-700 text-indigo-200 px-3 py-1 rounded-full border border-indigo-700 transition cursor-pointer">
+                    <?= esc($hint) ?>
+                </button>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Answer Area -->
+            <div id="cqResult" class="hidden mt-5 bg-indigo-950/50 rounded-xl border border-indigo-700 overflow-hidden">
+                <div class="px-4 py-3 border-b border-indigo-800 flex items-center gap-2">
+                    <i class="fas fa-comment-dots text-indigo-300"></i>
+                    <span id="cqAnswerText" class="text-white text-sm font-medium"></span>
+                </div>
+                <div id="cqResultCards" class="p-4"></div>
+            </div>
+
+            <!-- Loading -->
+            <div id="cqLoading" class="hidden mt-4 flex items-center gap-2 text-indigo-300 text-sm">
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                Searching committee data…
+            </div>
+        </div>
+        <!-- ═══ END Committee Query Assistant ═══ -->
+
         <!-- Primary Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             <!-- New Applications -->
@@ -152,5 +215,91 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
+<script>
+const CQ_URL = '<?= site_url('admin/query-committee') ?>';
+const CQ_TOKEN = '<?= csrf_hash() ?>';
+const CQ_NAME  = '<?= csrf_token() ?>';
 
+async function runCommitteeQuery() {
+    const input   = document.getElementById('cqInput');
+    const result  = document.getElementById('cqResult');
+    const loading = document.getElementById('cqLoading');
+    const answer  = document.getElementById('cqAnswerText');
+    const cards   = document.getElementById('cqResultCards');
+    const btn     = document.getElementById('cqBtn');
+
+    const question = input.value.trim();
+    if (!question) { input.focus(); return; }
+
+    // Show loading
+    result.classList.add('hidden');
+    loading.classList.remove('hidden');
+    btn.disabled = true;
+
+    try {
+        const fd = new FormData();
+        fd.append('question', question);
+        fd.append(CQ_NAME, CQ_TOKEN);
+
+        const res  = await fetch(CQ_URL, { method: 'POST', body: fd });
+        const data = await res.json();
+
+        loading.classList.add('hidden');
+        btn.disabled = false;
+
+        if (data.error) {
+            answer.innerHTML = '<span style="color:#f87171">⚠ ' + escHtml(data.error) + '</span>';
+            cards.innerHTML = '';
+            result.classList.remove('hidden');
+            return;
+        }
+
+        // Render answer text (support **bold**)
+        answer.innerHTML = (data.answer || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+        // Render result cards
+        const rows = data.results || [];
+        if (rows.length === 0 || data.type === 'count') {
+            cards.innerHTML = '';
+        } else {
+            cards.innerHTML = rows.map(r => {
+                const name    = escHtml((r.first_name || '') + ' ' + (r.last_name || ''));
+                const post    = escHtml(r.post_name  || '—');
+                const mobile  = escHtml(r.mobile     || '');
+                const level   = escHtml(r.level_name || '');
+                const locParts = [r.sector_name, r.block_name, r.mla_name, r.district_name, r.state_name]
+                                   .filter(Boolean).join(', ');
+                return `
+                <div class="flex items-center justify-between bg-indigo-900/40 rounded-lg px-4 py-3 mb-2 border border-indigo-800 last:mb-0">
+                    <div>
+                        <p class="text-white font-semibold text-sm">${name}</p>
+                        <p class="text-indigo-300 text-xs mt-0.5">${post} ${level ? '· ' + level : ''}</p>
+                        ${locParts ? '<p class="text-indigo-400 text-xs mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>' + escHtml(locParts) + '</p>' : ''}
+                    </div>
+                    ${mobile ? '<a href="tel:' + escHtml(mobile) + '" class="text-indigo-300 hover:text-white text-xs"><i class="fas fa-phone mr-1"></i>' + escHtml(mobile) + '</a>' : ''}
+                </div>`;
+            }).join('');
+        }
+
+        result.classList.remove('hidden');
+    } catch (e) {
+        loading.classList.add('hidden');
+        btn.disabled = false;
+        answer.innerHTML = '<span style="color:#f87171">⚠ Network error. Try again.</span>';
+        cards.innerHTML = '';
+        result.classList.remove('hidden');
+    }
+}
+
+function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Allow Enter key
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('cqInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') runCommitteeQuery();
+    });
+});
+</script>
 <?= $this->endSection() ?>

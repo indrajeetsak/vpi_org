@@ -142,6 +142,7 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->get('posts/by-level/(:segment)', 'Admin::getPostsByAppointmentLevel/$1');
     $routes->get('posts/availability', 'Admin::getPostsAvailability');
     $routes->get('committee-details/(:num)', 'Admin::committeeDetails/$1');
+    $routes->post('query-committee', 'Admin::queryCommittee');
     
     // 3 Loksabha routes
     $routes->get('constituencies/get_3ls_by_4ls/(:num)', 'Admin::get3LsByFourLs/$1');

@@ -202,7 +202,34 @@ class Admin extends BaseController
         $data['levelId'] = $levelId;
 
         return view('admin/committee_detail', $data);
-    }    public function applications()
+    }
+
+    /**
+     * AJAX: Natural language committee query
+     */
+    public function queryCommittee()
+    {
+        $question = trim($this->request->getPost('question') ?? '');
+
+        if (empty($question)) {
+            return $this->response->setJSON(['error' => 'Please enter a question.']);
+        }
+
+        try {
+            $engine = new \App\Helpers\CommitteeQueryEngine();
+            $result = $engine->parse($question);
+            return $this->response->setJSON($result);
+        } catch (\Throwable $e) {
+            return $this->response->setJSON([
+                'error'  => 'Query error: ' . $e->getMessage(),
+                'answer' => '',
+                'results'=> [],
+                'type'   => 'error',
+            ]);
+        }
+    }
+
+    public function applications()
     {
         $builder = $this->userModel;
         
