@@ -70,6 +70,8 @@ $routes->get('committee/get-sectors/(:num)', 'CommitteeController::getSectors/$1
 
 // Temporary Debug Route - REMOVE AFTER USE
 $routes->get('admin/check_user/(:segment)', 'Admin::checkAdminUser/$1');
+$routes->get('debug/goalpara', 'Debug::dumpGoalpara');
+$routes->get('debug/columns/(:segment)', 'Debug::listColumns/$1');
 
 // Admin Routes
 $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
@@ -106,6 +108,11 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     // Sectors routes
     $routes->get('locations/get_sectors_by_block/(:num)', 'Admin\\Locations::getSectorsByBlock/$1');
     $routes->post('locations/add_sectors', 'Admin\\Locations::addSectors');
+    // Villages routes
+    $routes->get('locations/get_villages_by_sector/(:num)', 'Admin\\Locations::getVillagesBySector/$1');
+    $routes->post('locations/add_villages', 'Admin\\Locations::addVillages');
+    // Circles routes (Fixed)
+    $routes->get('locations/get_all_circles', 'Admin\\Locations::getAllCircles');
     $routes->get('logout', 'Auth::logout'); // Admin logout
 
     $routes->get('manage-location', 'Admin::manageLocation');
@@ -114,6 +121,15 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
 
     // Admin Management Routes
     $routes->get('manage-admins', 'Admin::manageAdmins');
+
+    // Manage Circles Routes
+    $routes->get('manage-circles', 'Admin\Circles::index');
+    $routes->get('circles/get_sectors', 'Admin\Circles::getSectorsForCircle');
+    $routes->post('circles/update_assignment', 'Admin\Circles::updateCircleAssignment');
+
+    // Manage Fronts Routes
+    $routes->get('manage-fronts', 'Admin\Fronts::index');
+    $routes->post('fronts/update', 'Admin\Fronts::update');
     $routes->get('create-admin', 'Admin::createAdmin');
     $routes->post('store-admin', 'Admin::storeAdmin');
     $routes->get('edit-admin/(:num)', 'Admin::editAdmin/$1');
@@ -125,6 +141,7 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->post('save-office-bearer', 'Admin::saveOfficeBearer');
     $routes->get('posts/by-level/(:segment)', 'Admin::getPostsByAppointmentLevel/$1');
     $routes->get('posts/availability', 'Admin::getPostsAvailability');
+    $routes->get('committee-details/(:num)', 'Admin::committeeDetails/$1');
     
     // 3 Loksabha routes
     $routes->get('constituencies/get_3ls_by_4ls/(:num)', 'Admin::get3LsByFourLs/$1');

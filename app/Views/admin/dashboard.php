@@ -113,12 +113,12 @@
                 <!-- Helper for cards -->
                 <?php
                 $committeeCards = [
-                    ['title' => 'State Level', 'count' => $constitutedStateCommittees ?? 0, 'color' => 'indigo', 'icon' => 'fas fa-map'],
-                    ['title' => 'District Level', 'count' => $constitutedDistrictCommittees ?? 0, 'color' => 'blue', 'icon' => 'fas fa-city'],
-                    ['title' => 'MLA Level', 'count' => $constitutedMlaCommittees ?? 0, 'color' => 'teal', 'icon' => 'fas fa-landmark'],
-                    ['title' => 'Block/Town Level', 'count' => $constitutedBlockCommittees ?? 0, 'color' => 'amber', 'icon' => 'fas fa-th-large'],
-                    ['title' => 'MP Level', 'count' => $constitutedMpCommittees ?? 0, 'color' => 'rose', 'icon' => 'fas fa-flag'],
-                    ['title' => 'Sector Level', 'count' => $constitutedSectorCommittees ?? 0, 'color' => 'violet', 'icon' => 'fas fa-vector-square'],
+                    ['title' => 'State Level', 'count' => $constitutedStateCommittees ?? 0, 'color' => 'indigo', 'icon' => 'fas fa-map', 'level_id' => 11],
+                    ['title' => 'District Level', 'count' => $constitutedDistrictCommittees ?? 0, 'color' => 'blue', 'icon' => 'fas fa-city', 'level_id' => 16],
+                    ['title' => 'MLA Level', 'count' => $constitutedMlaCommittees ?? 0, 'color' => 'teal', 'icon' => 'fas fa-landmark', 'level_id' => 6],
+                    ['title' => 'Block/Town Level', 'count' => $constitutedBlockCommittees ?? 0, 'color' => 'amber', 'icon' => 'fas fa-th-large', 'level_id' => 5],
+                    ['title' => 'MP Level', 'count' => $constitutedMpCommittees ?? 0, 'color' => 'rose', 'icon' => 'fas fa-flag', 'level_id' => 7],
+                    ['title' => 'Sector Level', 'count' => $constitutedSectorCommittees ?? 0, 'color' => 'violet', 'icon' => 'fas fa-vector-square', 'level_id' => 3],
                 ];
 
                 foreach ($committeeCards as $card): 
@@ -133,16 +133,18 @@
                         default => 'bg-gray-700 text-gray-400'
                     };
                 ?>
-                <div class="bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-700 hover:shadow-md transition-all duration-300 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1">Committees at</p>
-                        <h4 class="text-lg font-bold text-white leading-tight mb-2"><?= $card['title'] ?></h4>
-                        <p class="text-3xl font-extrabold text-white"><?= $card['count'] ?></p>
+                <a href="<?= site_url('admin/committee-details/' . $card['level_id']) ?>" class="block">
+                    <div class="bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-700 hover:shadow-lg hover:border-gray-500 transition-all duration-300 flex items-center justify-between cursor-pointer group">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1">Committees at</p>
+                            <h4 class="text-lg font-bold text-white leading-tight mb-2"><?= $card['title'] ?></h4>
+                            <p class="text-3xl font-extrabold text-white"><?= $card['count'] ?></p>
+                        </div>
+                        <div class="<?= $iconClass ?> p-4 rounded-2xl shadow-inner group-hover:scale-110 transition-transform duration-300">
+                            <i class="<?= $card['icon'] ?> text-2xl"></i>
+                        </div>
                     </div>
-                    <div class="<?= $iconClass ?> p-4 rounded-2xl shadow-inner">
-                        <i class="<?= $card['icon'] ?> text-2xl"></i>
-                    </div>
-                </div>
+                </a>
                 <?php endforeach; ?>
             </div>
         </div>

@@ -63,6 +63,22 @@
                 </div>
             </div>
 
+            <!-- Sector Dropdown and Actions (New Row) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <label for="sectorSelect" class="block text-sm font-medium text-gray-700 mb-2">Select Sector (Panchayat)</label>
+                    <select id="sectorSelect" name="sector_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" disabled>
+                        <option value="">-- Select Block First --</option>
+                    </select>
+                    <!-- Add/Edit Village Button - Below Sector Dropdown -->
+                    <div id="sectorActions" class="mt-3" style="display:none;">
+                        <button type="button" id="addEditVillageBtn" class="w-full px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition" style="background-color: #4f46e5 !important; color: white !important;">
+                            <i class="fas fa-home mr-2"></i>Add/Edit Village
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div id="dataEditAreaContainer" class="mb-6" style="display:none;">
                 <label for="dataTextArea" class="block text-sm font-medium text-gray-700 mb-2">Editing: <span id="editingDataTypeLabel" class="font-bold"></span> (one item per line)</label>
                 <textarea id="dataTextArea" name="data_items" class="w-full h-48 px-4 py-3 font-mono text-sm border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Data will be listed here. Add, edit, or delete items, ensuring each is on a new line."></textarea>
@@ -105,9 +121,11 @@
         const stateSelect = document.getElementById('stateSelect');
         const districtSelect = document.getElementById('districtSelect');
         const blockSelect = document.getElementById('blockSelect');
+        const sectorSelect = document.getElementById('sectorSelect');
         const editActionsDiv = document.getElementById('editActions');
         const stateActionsDiv = document.getElementById('stateActions');
         const blockActionsDiv = document.getElementById('blockActions');
+        const sectorActionsDiv = document.getElementById('sectorActions');
         const addDistrictBtn = document.getElementById('addDistrictBtn');
         const dataEditAreaContainer = document.getElementById('dataEditAreaContainer');
         const dataTextArea = document.getElementById('dataTextArea');
@@ -174,10 +192,17 @@
         districtSelect.addEventListener('change', function() {
             const districtId = this.value;
             
+            
             // Reset block dropdown
             blockSelect.innerHTML = '<option value="">-- Loading Blocks --</option>';
             blockSelect.disabled = true;
             blockActionsDiv.style.display = 'none';
+
+            // Reset sector dropdown
+            sectorSelect.innerHTML = '<option value="">-- Select Block First --</option>';
+            sectorSelect.disabled = true;
+            sectorActionsDiv.style.display = 'none';
+
             
             if (districtId) {
                 editActionsDiv.style.display = 'flex';
@@ -219,10 +244,57 @@
 
         // Block Select Change Handler
         blockSelect.addEventListener('change', function() {
-            if (this.value) {
+            const blockId = this.value;
+            
+            // Reset sector dropdown
+            sectorSelect.innerHTML = '<option value="">-- Loading Sectors --</option>';
+            sectorSelect.disabled = true;
+            sectorActionsDiv.style.display = 'none';
+
+            if (blockId) {
                 blockActionsDiv.style.display = 'block';
+
+                // Load sectors for selected block
+                fetch(`<?= site_url('admin/locations/get_sectors_by_block') ?>/${blockId}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    sectorSelect.innerHTML = '<option value="">-- Select Sector --</option>';
+                    if (data.success && data.sectors.length > 0) {
+                        data.sectors.forEach(sector => {
+                            const option = document.createElement('option');
+                            option.value = sector.id;
+                            option.textContent = sector.name;
+                            sectorSelect.appendChild(option);
+                        });
+                        sectorSelect.disabled = false;
+                    } else {
+                        sectorSelect.innerHTML = '<option value="">-- No Sectors Found --</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching sectors:', error);
+                    sectorSelect.innerHTML = '<option value="">-- Error Loading Sectors --</option>';
+                });
             } else {
                 blockActionsDiv.style.display = 'none';
+                sectorSelect.innerHTML = '<option value="">-- Select Block First --</option>';
+            }
+            dataEditAreaContainer.style.display = 'none';
+            updateDataBtn.style.display = 'none';
+            formFeedback.innerHTML = '';
+        });
+
+        // Sector Select Change Handler
+        sectorSelect.addEventListener('change', function() {
+            if (this.value) {
+                sectorActionsDiv.style.display = 'block';
+            } else {
+                sectorActionsDiv.style.display = 'none';
             }
             dataEditAreaContainer.style.display = 'none';
             updateDataBtn.style.display = 'none';
@@ -346,6 +418,45 @@
             });
         });
 
+        // Add/Edit Village Button Handler
+        const addEditVillageBtn = document.getElementById('addEditVillageBtn');
+        addEditVillageBtn.addEventListener('click', function() {
+            const sectorId = sectorSelect.value;
+            if (!sectorId) {
+                showFeedback('Please select a sector first.', 'error');
+                return;
+            }
+
+            // Fetch existing villages for the selected sector
+            fetch(`<?= site_url('admin/locations/get_villages_by_sector') ?>/${sectorId}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.villages) {
+                    const villageNames = data.villages.map(v => v.name).join('\n');
+                    dataTextArea.value = villageNames;
+                } else {
+                    dataTextArea.value = '';
+                }
+                
+                // Show the edit area
+                editingDataTypeLabel.textContent = 'Villages (one item per line)';
+                currentDataTypeInput.value = 'villages';
+                updateButtonLabel.textContent = 'Villages';
+                dataEditAreaContainer.style.display = 'block';
+                updateDataBtn.style.display = 'inline-block';
+                formFeedback.innerHTML = '';
+            })
+            .catch(error => {
+                console.error('Error fetching villages:', error);
+                showFeedback('Failed to load villages. Please try again.', 'error');
+            });
+        });
+
         // Modal Handling
         addDistrictBtn.addEventListener('click', () => {
             const stateId = stateSelect.value;
@@ -402,6 +513,7 @@
             const dataType = currentDataTypeInput.value;
             const districtId = districtSelect.value;
             const blockId = blockSelect.value;
+            const sectorId = sectorSelect.value;
             
             // Parse data items based on type
             let dataItems;
@@ -410,6 +522,9 @@
 
             if (dataType === 'sectors' && !blockId) {
                 showFeedback('Please select a block.', 'error');
+                return;
+            } else if (dataType === 'villages' && !sectorId) {
+                showFeedback('Please select a sector.', 'error');
                 return;
             } else if (!districtId) {
                 showFeedback('Please select a district.', 'error');
@@ -433,6 +548,9 @@
             } else if (dataType === 'sectors') {
                 endpoint = '<?= site_url('admin/locations/add_sectors') ?>';
                 requestData = { block_id: blockId, names: dataItems };
+            } else if (dataType === 'villages') {
+                endpoint = '<?= site_url('admin/locations/add_villages') ?>';
+                requestData = { sector_id: sectorId, names: dataItems };
             } else {
                 showFeedback('Invalid data type.', 'error');
                 return;
@@ -490,6 +608,19 @@
                             if (data.success && data.sectors) {
                                 const sectorNames = data.sectors.map(c => c.name).join(', ');
                                 dataTextArea.value = sectorNames;
+                            }
+                        });
+                    } else if (dataType === 'villages') {
+                        // Re-fetch villages
+                        fetch(`<?= site_url('admin/locations/get_villages_by_sector') ?>/${sectorId}`, {
+                            method: 'GET',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.villages) {
+                                const villageNames = data.villages.map(v => v.name).join('\n');
+                                dataTextArea.value = villageNames;
                             }
                         });
                     }

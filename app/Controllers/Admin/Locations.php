@@ -272,6 +272,18 @@ class Locations extends BaseController
         return $this->response->setJSON(['success' => true, 'message' => implode(', ', $messages) . '.']);
     }
 
+    public function getCirclesByBlock($blockId)
+    {
+        $circleModel = new \App\Models\CircleModel();
+        $circles = $circleModel->where('block_id', $blockId)->orderBy('name', 'ASC')->findAll();
+
+        if (!empty($circles)) {
+            return $this->response->setJSON(['success' => true, 'circles' => $circles]);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'No circles found for this block.']);
+        }
+    }
+
     public function getSectorsByBlock($blockId)
     {
         $sectorModel = new \App\Models\SectorModel();
@@ -358,5 +370,103 @@ class Locations extends BaseController
         }
 
         return $this->response->setJSON(['success' => true, 'message' => implode(', ', $messages) . '.']);
+    }
+    public function getVillagesBySector($sectorId)
+    {
+        $villageModel = new \App\Models\VillageModel();
+        $villages = $villageModel->where('sector_id', $sectorId)->orderBy('name', 'ASC')->findAll();
+
+        if (!empty($villages)) {
+            return $this->response->setJSON(['success' => true, 'villages' => $villages]);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'No villages found for this sector.']);
+        }
+    }
+
+    public function addVillages()
+    {
+        $sectorId = $this->request->getJsonVar('sector_id');
+        $villageNames = $this->request->getJsonVar('names');
+
+        if (empty($sectorId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Sector ID is required.']);
+        }
+
+        $villageModel = new \App\Models\VillageModel();
+
+        // If no village names provided, delete all villages for this sector
+        if (empty($villageNames)) {
+            $villageModel->where('sector_id', $sectorId)->delete();
+            return $this->response->setJSON(['success' => true, 'message' => 'All villages removed.']);
+        }
+
+        // Sanitize village names
+        $sanitizedVillageNames = array_map('trim', $villageNames);
+        $sanitizedVillageNames = array_filter($sanitizedVillageNames); // Remove empty names
+
+        if (empty($sanitizedVillageNames)) {
+            $villageModel->where('sector_id', $sectorId)->delete();
+            return $this->response->setJSON(['success' => true, 'message' => 'All villages removed.']);
+        }
+
+        // Get existing villages for this sector
+        $existingVillages = $villageModel->where('sector_id', $sectorId)->findAll();
+        $existingVillageNames = array_map(function($v) { return $v['name']; }, $existingVillages);
+
+        // Find villages to add (in submitted list but not in database)
+        $villagesToAdd = array_diff($sanitizedVillageNames, $existingVillageNames);
+
+        // Find villages to delete (in database but not in submitted list)
+        $villagesToDelete = array_diff($existingVillageNames, $sanitizedVillageNames);
+
+        $addedCount = 0;
+        $deletedCount = 0;
+
+        // Add new villages
+        if (!empty($villagesToAdd)) {
+            $dataToInsert = [];
+            foreach ($villagesToAdd as $name) {
+                $dataToInsert[] = [
+                    'sector_id' => $sectorId,
+                    'name' => $name,
+                    'added_by' => session()->get('admin_id'),
+                    'added_by_name' => session()->get('name'),
+                ];
+            }
+            if ($villageModel->insertBatch($dataToInsert)) {
+                $addedCount = count($dataToInsert);
+            }
+        }
+
+        // Delete removed villages
+        if (!empty($villagesToDelete)) {
+            $villageModel->where('sector_id', $sectorId)->whereIn('name', $villagesToDelete)->delete();
+            $deletedCount = count($villagesToDelete);
+        }
+
+        // Build response message
+        $messages = [];
+        if ($addedCount > 0) {
+            $messages[] = "$addedCount village(s) added";
+        }
+        if ($deletedCount > 0) {
+            $messages[] = "$deletedCount village(s) deleted";
+        }
+        if (empty($messages)) {
+            $messages[] = "No changes made";
+        }
+
+        return $this->response->setJSON(['success' => true, 'message' => implode(', ', $messages) . '.']);
+    }
+    public function getAllCircles()
+    {
+        $circleModel = new \App\Models\CircleModel();
+        $circles = $circleModel->orderBy('name', 'ASC')->findAll();
+
+        if (!empty($circles)) {
+            return $this->response->setJSON(['success' => true, 'circles' => $circles]);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'No circles found.']);
+        }
     }
 }

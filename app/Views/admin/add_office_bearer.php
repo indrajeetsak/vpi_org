@@ -109,15 +109,48 @@
                 <h5 class="text-md font-semibold text-green-900 mb-4">
                     <i class="fas fa-briefcase mr-2"></i>Appointment Details
                 </h5>
-                <div class="mb-4">
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Organ Dropdown -->
                     <div>
+                        <label for="organ_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            Organ <span class="text-red-500">*</span>
+                        </label>
+                        <select id="organ_id" name="organ_id" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="">Select Organ</option>
+                            <?php foreach ($organs as $organ): ?>
+                                <option value="<?= $organ['id'] ?>"><?= esc($organ['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="text-red-500 text-sm hidden" id="organ_id-error"></span>
+                    </div>
+
+                    <!-- Front Dropdown (Hidden initially) -->
+                    <div id="front_wrapper" class="hidden">
+                        <label for="front_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            Front <span class="text-red-500">*</span>
+                        </label>
+                        <select id="front_id" name="front_id"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="">Select Front</option>
+                            <?php foreach ($fronts as $front): ?>
+                                <option value="<?= $front['id'] ?>"><?= esc($front['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="text-red-500 text-sm hidden" id="front_id-error"></span>
+                    </div>
+
+                    <!-- Appointed Level (Hidden initially) -->
+                    <div id="appointed_level_wrapper" class="hidden">
                         <label for="appointed_level" class="block text-sm font-medium text-gray-700 mb-2">
                             Appointed Level <span class="text-red-500">*</span>
                         </label>
                         <select id="appointed_level" name="appointed_level" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                             <option value="">Select Level</option>
+                            <option value="Village">Village/Ward</option>
                             <option value="Sector">Sector (Panchayat)</option>
+                            <option value="Circle">Circle</option>
                             <option value="Block">Block</option>
                             <option value="District">District</option>
                             <option value="MLA Constituency">MLA Constituency</option>
@@ -167,6 +200,17 @@
                                 <option value="">Select Block</option>
                             </select>
                         </div>
+                        
+                        <!-- Circle (Hidden initially) -->
+                        <div id="circle_wrapper" class="hidden">
+                            <label for="circle_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                Circle <span class="text-red-500">*</span>
+                            </label>
+                            <select id="circle_id" name="circle_id"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="">Select Circle</option>
+                            </select>
+                        </div>
 
                         <!-- Sector -->
                         <div id="sector_wrapper" class="hidden">
@@ -176,6 +220,17 @@
                             <select id="sector_id" name="sector_id"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="">Select Sector</option>
+                            </select>
+                        </div>
+
+                        <!-- Village (Hidden initially) -->
+                        <div id="village_wrapper" class="hidden">
+                            <label for="village_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                Village/Ward <span class="text-red-500">*</span>
+                            </label>
+                            <select id="village_id" name="village_id"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="">Select Village</option>
                             </select>
                         </div>
 
@@ -255,6 +310,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('officeBearerForm');
     const submitBtn = document.getElementById('submitBtn');
+    
+    // Organ & Front
+    const organSelect = document.getElementById('organ_id');
+    const frontSelect = document.getElementById('front_id');
+    const frontWrapper = document.getElementById('front_wrapper');
+    const appointedLevelWrapper = document.getElementById('appointed_level_wrapper');
+
     const appointedLevelSelect = document.getElementById('appointed_level');
     const postInput = document.getElementById('post_id');
     const postsContainer = document.getElementById('posts-container');
@@ -268,7 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const committeeStateSelect = document.getElementById('committee_state_id');
     const committeeDistrictSelect = document.getElementById('committee_district_id');
     const blockSelect = document.getElementById('block_id');
+    const circleSelect = document.getElementById('circle_id');
     const sectorSelect = document.getElementById('sector_id');
+    const villageSelect = document.getElementById('village_id');
     const mlaAreaSelect = document.getElementById('mla_area_id');
     const lsSelect = document.getElementById('ls_id');
     
@@ -276,7 +340,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const committeeStateWrapper = document.getElementById('committee_state_wrapper');
     const committeeDistrictWrapper = document.getElementById('committee_district_wrapper');
     const blockWrapper = document.getElementById('block_wrapper');
+    const circleWrapper = document.getElementById('circle_wrapper');
     const sectorWrapper = document.getElementById('sector_wrapper');
+    const villageWrapper = document.getElementById('village_wrapper');
     const mlaAreaWrapper = document.getElementById('mla_area_wrapper');
     const lsWrapper = document.getElementById('ls_wrapper');
 
@@ -309,36 +375,126 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Handle Organ Change
+    organSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const organName = selectedOption.text.trim().toLowerCase();
 
-
-    // Handle appointed level change
-    appointedLevelSelect.addEventListener('change', function() {
-        const level = this.value;
+        // Reset sub-components
+        frontSelect.value = '';
+        frontWrapper.classList.add('hidden');
+        appointedLevelWrapper.classList.add('hidden');
+        appointedLevelSelect.value = '';
         
-        // Reset and hide all committee dropdowns
         hideAllCommitteeDropdowns();
         resetCommitteeDropdowns();
         resetPostsTable();
-        
-        if (level) {
-            showCommitteeDropdownsForLevel(level);
+
+        if (organName === 'front') {
+            frontWrapper.classList.remove('hidden');
+        } else if (this.value) { 
+            // Main Committee or others
+            appointedLevelWrapper.classList.remove('hidden');
         }
-        checkSubmitButton();
     });
 
-    function resetPostsTable() {
+    // Handle Front Change
+    frontSelect.addEventListener('change', function() {
+        if (this.value) {
+            appointedLevelWrapper.classList.remove('hidden');
+        } else {
+            appointedLevelWrapper.classList.add('hidden');
+            appointedLevelSelect.value = '';
+            hideAllCommitteeDropdowns();
+            resetCommitteeDropdowns();
+            resetPostsTable();
+        }
+    });
+
+    // Appointed Level Change
+    appointedLevelSelect.addEventListener('change', function() {
+        const level = this.value;
+        
+        // Reset all location dropdowns
+        resetLocationDropdowns();
         postsContainer.classList.add('hidden');
-        postsTableBody.innerHTML = '';
         postInput.value = '';
+        checkSubmitButton();
+        
+        // Hide all wrappers first
+        hideAllCommitteeDropdowns();
+
+        if (level) {
+            showCommitteeDropdownsForLevel(level);
+            if (level === 'Circle') {
+                loadCircles();
+            }
+        }
+    });
+
+    function loadCircles() {
+        circleSelect.innerHTML = '<option value="">Loading...</option>';
+        fetch('<?= site_url('admin/locations/get_all_circles') ?>')
+            .then(response => response.json())
+            .then(data => {
+                circleSelect.innerHTML = '<option value="">Select Circle</option>';
+                if (data.success && data.circles) {
+                    data.circles.forEach(circle => {
+                        const option = document.createElement('option');
+                        option.value = circle.id;
+                        option.textContent = circle.name;
+                        circleSelect.appendChild(option);
+                    });
+                }
+            });
+    }
+
+    function hideAllCommitteeDropdowns() {
+        committeeStateWrapper.classList.add('hidden');
+        committeeDistrictWrapper.classList.add('hidden');
+        blockWrapper.classList.add('hidden');
+        circleWrapper.classList.add('hidden');
+        sectorWrapper.classList.add('hidden');
+        villageWrapper.classList.add('hidden');
+        mlaAreaWrapper.classList.add('hidden');
+        lsWrapper.classList.add('hidden');
+    }
+
+    function resetCommitteeDropdowns() {
+        committeeStateSelect.value = ''; 
+        committeeDistrictSelect.innerHTML = '<option value="">Select District</option>';
+        blockSelect.innerHTML = '<option value="">Select Block</option>';
+        circleSelect.innerHTML = '<option value="">Select Circle</option>';
+        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        villageSelect.innerHTML = '<option value="">Select Village</option>';
+        mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
+        lsSelect.innerHTML = '<option value="">Select MP Constituency</option>';
+    }
+    
+    function resetLocationDropdowns() {
+        resetCommitteeDropdowns();
     }
 
     function showCommitteeDropdownsForLevel(level) {
         switch(level) {
+            case 'Village':
+                committeeStateWrapper.classList.remove('hidden');
+                committeeDistrictWrapper.classList.remove('hidden');
+                blockWrapper.classList.remove('hidden');
+                sectorWrapper.classList.remove('hidden');
+                villageWrapper.classList.remove('hidden');
+                break;
             case 'Sector':
                 committeeStateWrapper.classList.remove('hidden');
                 committeeDistrictWrapper.classList.remove('hidden');
                 blockWrapper.classList.remove('hidden');
                 sectorWrapper.classList.remove('hidden');
+                break;
+            case 'Circle':
+                committeeStateWrapper.classList.remove('hidden');
+                committeeDistrictWrapper.classList.remove('hidden');
+                blockWrapper.classList.remove('hidden');
+                circleWrapper.classList.remove('hidden');
                 break;
             case 'Block':
                 committeeStateWrapper.classList.remove('hidden');
@@ -364,22 +520,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function hideAllCommitteeDropdowns() {
-        committeeStateWrapper.classList.add('hidden');
-        committeeDistrictWrapper.classList.add('hidden');
-        blockWrapper.classList.add('hidden');
-        sectorWrapper.classList.add('hidden');
-        mlaAreaWrapper.classList.add('hidden');
-        lsWrapper.classList.add('hidden');
-    }
-
-    function resetCommitteeDropdowns() {
-        committeeStateSelect.value = '';
-        committeeDistrictSelect.innerHTML = '<option value="">Select District</option>';
-        blockSelect.innerHTML = '<option value="">Select Block</option>';
-        sectorSelect.innerHTML = '<option value="">Select Sector</option>';
-        mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
-        lsSelect.innerHTML = '<option value="">Select MP Constituency</option>';
+    function resetPostsTable() {
+        postsContainer.classList.add('hidden');
+        postsTableBody.innerHTML = '';
+        postInput.value = '';
     }
 
     // Load Posts Table
@@ -394,8 +538,12 @@ document.addEventListener('DOMContentLoaded', function() {
             district_id: committeeDistrictSelect.value,
             block_id: blockSelect.value,
             sector_id: sectorSelect.value,
+            village_id: villageSelect.value,
+            circle_id: circleSelect.value,
             mla_area_id: mlaAreaSelect.value,
-            ls_id: lsSelect.value
+            ls_id: lsSelect.value,
+            organ_id: organSelect.value,
+            front_id: frontSelect.value
         });
 
         // Only fetch if required fields for the level are filled
@@ -410,7 +558,6 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`<?= site_url('admin/posts/availability') ?>?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
-                console.log('Availability Debug Info:', data); // Look here in the Console!
                 if (data.success && data.data) {
                     renderPostsTable(data.data);
                 } else {
@@ -457,7 +604,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function isLevelDataComplete(level) {
         switch(level) {
+            case 'Village': return villageSelect.value !== '';
             case 'Sector': return sectorSelect.value !== '';
+            case 'Circle': return circleSelect.value !== '';
             case 'Block': return blockSelect.value !== '';
             case 'District': return committeeDistrictSelect.value !== '';
             case 'MLA Constituency': return mlaAreaSelect.value !== '';
@@ -472,21 +621,52 @@ document.addEventListener('DOMContentLoaded', function() {
     committeeStateSelect.addEventListener('change', function() {
         const stateId = this.value;
         const level = appointedLevelSelect.value;
-        
+    
+        // Reset children
         committeeDistrictSelect.innerHTML = '<option value="">Select District</option>';
         blockSelect.innerHTML = '<option value="">Select Block</option>';
+        
+        // Don't reset Circles if they are fixed, but if State changes, maybe we should? 
+        // Fixed circles are global, so we don't strictly need to reset, but resetting is cleaner for UX.
+        // If we reset, we must re-load if Level is Circle.
+        // But resetCommitteeDropdowns() is called here implicitly via manual innerHTML sets? No, explicitly below.
+        
+        if (level !== 'Circle') {
+            circleSelect.innerHTML = '<option value="">Select Circle</option>';
+        }
+        
         sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        villageSelect.innerHTML = '<option value="">Select Village</option>';
         mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
         lsSelect.innerHTML = '<option value="">Select MP Constituency</option>';
+        
+        committeeDistrictWrapper.classList.add('hidden');
+        lsWrapper.classList.add('hidden');
+        mlaAreaWrapper.classList.add('hidden'); // Ensure MLA is hidden if state changes
+        
         resetPostsTable();
         
         if (stateId) {
              if (level === 'State') {
                  loadPostsStructure();
              } else if (level === 'MP Constituency') {
-                // ... fetch logic for MP ...
-                 // Placeholder for MP logic (copy-pasted from original if needed or simplified)
+                 lsWrapper.classList.remove('hidden');
+                 // Fetch LS...
+                 fetch(`<?= site_url('auth/get-ls-areas/') ?>${stateId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.data) {
+                            data.data.forEach(lsArea => {
+                                const option = document.createElement('option');
+                                option.value = lsArea.id;
+                                option.textContent = lsArea.name;
+                                lsSelect.appendChild(option);
+                            });
+                        }
+                    });
              } else {
+                 // For District, Block, Circle, Sector, Village, MLA -> Show District
+                 committeeDistrictWrapper.classList.remove('hidden');
                  fetch(`<?= site_url('auth/get-districts/') ?>${stateId}`)
                     .then(response => response.json())
                     .then(data => {
@@ -510,14 +690,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const level = appointedLevelSelect.value;
         
         blockSelect.innerHTML = '<option value="">Select Block</option>';
+        // Don't reset fixed circles
+        
         sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        villageSelect.innerHTML = '<option value="">Select Village</option>';
         mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
+        
+        blockWrapper.classList.add('hidden');
+        mlaAreaWrapper.classList.add('hidden');
+        
         resetPostsTable();
         
         if (districtId) {
             if (level === 'District') {
                 loadPostsStructure();
             } else if (level === 'MLA Constituency') {
+                mlaAreaWrapper.classList.remove('hidden');
                 fetch(`<?= site_url('auth/get-mla-areas/') ?>${districtId}`)
                     .then(response => response.json())
                     .then(data => {
@@ -531,11 +719,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
             } else {
+                // For Block, Circle, Sector, Village -> Show Block
+                blockWrapper.classList.remove('hidden');
                 fetch(`<?= site_url('auth/get-blocks/') ?>${districtId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success && data.data) {
-                            data.data.forEach(block => {
+                             data.data.forEach(block => {
                                 const option = document.createElement('option');
                                 option.value = block.id;
                                 option.textContent = block.name;
@@ -553,14 +743,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const blockId = this.value;
         const level = appointedLevelSelect.value;
         
+        // Remove circle reset and fetch logic
+        
         sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        villageSelect.innerHTML = '<option value="">Select Village</option>';
+        
+        // circleWrapper.classList.add('hidden'); // Don't hide circle wrapper on block change if level is circle
+        sectorWrapper.classList.add('hidden');
+        
         resetPostsTable();
 
         if (blockId) {
             if (level === 'Block') {
                 loadPostsStructure();
-            } else if (level === 'Sector') {
-                fetch(`<?= site_url('admin/locations/get_sectors_by_block/') ?>${blockId}`)
+            } else if (level === 'Circle') {
+                 // Do nothing for circle loading, it's already loaded or loaded by loadCircles().
+                 // Just check if we can submit?
+                 // But we need to ensure Circles are loaded?
+                 if (circleSelect.options.length <= 1) {
+                     loadCircles();
+                 }
+            } else if (level === 'Sector' || level === 'Village') {
+                 sectorWrapper.classList.remove('hidden');
+                 fetch(`<?= site_url('admin/locations/get_sectors_by_block/') ?>${blockId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success && data.sectors) {
@@ -577,8 +782,47 @@ document.addEventListener('DOMContentLoaded', function() {
         checkSubmitButton();
     });
 
-    // Sector, MLA Area, and LS change handlers
-    sectorSelect.addEventListener('change', () => { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); });
+    // Circle Change
+    circleSelect.addEventListener('change', function() {
+        resetPostsTable();
+        loadPostsStructure();
+        checkSubmitButton();
+    });
+
+    // Sector Change
+    sectorSelect.addEventListener('change', function() {
+         const sectorId = this.value;
+         const level = appointedLevelSelect.value;
+         
+         villageSelect.innerHTML = '<option value="">Select Village</option>';
+         villageWrapper.classList.add('hidden');
+         
+         resetPostsTable();
+         
+         if (sectorId) {
+             if (level === 'Sector') {
+                 loadPostsStructure();
+             } else if (level === 'Village') {
+                 villageWrapper.classList.remove('hidden');
+                 fetch(`<?= site_url('admin/locations/get_villages_by_sector/') ?>${sectorId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.villages) {
+                            data.villages.forEach(village => {
+                                const option = document.createElement('option');
+                                option.value = village.id;
+                                option.textContent = village.name;
+                                villageSelect.appendChild(option);
+                            });
+                        }
+                    });
+             }
+         }
+         checkSubmitButton();
+    });
+    
+    // Village Change
+    villageSelect.addEventListener('change', () => { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); });
     mlaAreaSelect.addEventListener('change', () => { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); });
     lsSelect.addEventListener('change', () => { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); });
 
@@ -586,6 +830,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.checkSubmitButton = function() {
         submitBtn.disabled = !postInput.value;
     }
+
 
     // Form submission
     form.addEventListener('submit', function(e) {

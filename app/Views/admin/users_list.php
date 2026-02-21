@@ -27,7 +27,7 @@
         <!-- Search Form -->
         <form action="<?= site_url('admin/usersList') ?>" method="get" class="flex-grow flex flex-col md:flex-row gap-4">
             <div class="flex-grow">
-                <input type="text" placeholder="Search by Name, Email, or Mobile..." name="search_term" value="<?= esc(service('request')->getGet('search_term'), 'attr') ?>" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                <input type="text" placeholder="Search by Name, Post, Location, Committee..." name="search_term" value="<?= esc(service('request')->getGet('search_term'), 'attr') ?>" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
             </div>
             <div class="flex-shrink-0">
                 <button type="submit" class="w-full md:w-auto px-6 py-2 bg-gray-800 text-white font-medium rounded-lg shadow hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition">
@@ -93,7 +93,7 @@
             </table>
         </div>
         <div class="p-4">
-            <?= $pager->links() ?? '' ?>
+            <?= $pager->links('default', 'tailwind_full') ?? '' ?>
         </div>
     </div>
 <?php else: ?>

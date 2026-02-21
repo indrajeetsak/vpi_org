@@ -85,6 +85,123 @@ class Admin extends BaseController
         // $data['paymentSuccessRate'] = $totalPaymentsAttempted > 0 ? round(($successfulPayments / $totalPaymentsAttempted) * 100, 2) . '%' : 'Data N/A';
         $data['paymentSuccessRate'] = 'Data N/A'; // Keep as placeholder if PaymentModel is not ready
         return view('admin/dashboard', $data); // View: admin/dashboard.php
+    }
+
+    /**
+     * Show constituted committees for a given level with full location breadcrumb
+     */
+    public function committeeDetails($levelId)
+    {
+        $levelLabels = [
+            11 => 'State Level',
+            16 => 'District Level',
+            6  => 'MLA Level',
+            5  => 'Block/Town Level',
+            7  => 'MP Level',
+            3  => 'Sector Level',
+        ];
+
+        if (!isset($levelLabels[$levelId])) {
+            session()->setFlashdata('error', 'Invalid level.');
+            return redirect()->to('admin/dashboard');
+        }
+
+        $db = \Config\Database::connect();
+        $committees = [];
+
+        if ($levelId == 11) {
+            // State Level: just state
+            $q = $db->query("
+                SELECT s.name AS loc1, NULL AS loc2, NULL AS loc3, NULL AS loc4,
+                       COUNT(a.id) AS member_count, a.state_id AS location_id
+                FROM appointments a
+                INNER JOIN states s ON s.id = a.state_id
+                WHERE a.level_id = 11 AND a.status = 'approved' AND a.state_id IS NOT NULL
+                GROUP BY a.state_id, s.name
+                ORDER BY s.name ASC
+            ");
+            $committees = $q->getResultArray();
+
+        } elseif ($levelId == 16) {
+            // District Level: district, state
+            $q = $db->query("
+                SELECT d.name AS loc1, s.name AS loc2, NULL AS loc3, NULL AS loc4,
+                       COUNT(a.id) AS member_count, a.district_id AS location_id
+                FROM appointments a
+                INNER JOIN districts d ON d.id = a.district_id
+                INNER JOIN states s ON s.id = d.state_id
+                WHERE a.level_id = 16 AND a.status = 'approved' AND a.district_id IS NOT NULL
+                GROUP BY a.district_id, d.name, s.name
+                ORDER BY s.name ASC, d.name ASC
+            ");
+            $committees = $q->getResultArray();
+
+        } elseif ($levelId == 6) {
+            // MLA Level: mla_area, district, state
+            $q = $db->query("
+                SELECT m.name AS loc1, d.name AS loc2, s.name AS loc3, NULL AS loc4,
+                       COUNT(a.id) AS member_count, a.mla_area_id AS location_id
+                FROM appointments a
+                INNER JOIN mla_area m ON m.id = a.mla_area_id
+                INNER JOIN districts d ON d.id = m.district_id
+                INNER JOIN states s ON s.id = d.state_id
+                WHERE a.level_id = 6 AND a.status = 'approved' AND a.mla_area_id IS NOT NULL
+                GROUP BY a.mla_area_id, m.name, d.name, s.name
+                ORDER BY s.name ASC, d.name ASC, m.name ASC
+            ");
+            $committees = $q->getResultArray();
+
+        } elseif ($levelId == 5) {
+            // Block Level: block, district, state
+            $q = $db->query("
+                SELECT b.name AS loc1, d.name AS loc2, s.name AS loc3, NULL AS loc4,
+                       COUNT(a.id) AS member_count, a.block_id AS location_id
+                FROM appointments a
+                INNER JOIN blocks b ON b.id = a.block_id
+                INNER JOIN districts d ON d.id = b.district_id
+                INNER JOIN states s ON s.id = d.state_id
+                WHERE a.level_id = 5 AND a.status = 'approved' AND a.block_id IS NOT NULL
+                GROUP BY a.block_id, b.name, d.name, s.name
+                ORDER BY s.name ASC, d.name ASC, b.name ASC
+            ");
+            $committees = $q->getResultArray();
+
+        } elseif ($levelId == 7) {
+            // MP (1LS) Level: mp constituency, state
+            $q = $db->query("
+                SELECT l.name AS loc1, s.name AS loc2, NULL AS loc3, NULL AS loc4,
+                       COUNT(a.id) AS member_count, a.ls_id AS location_id
+                FROM appointments a
+                INNER JOIN ls l ON l.id = a.ls_id
+                INNER JOIN states s ON s.id = l.state_id
+                WHERE a.level_id = 7 AND a.status = 'approved' AND a.ls_id IS NOT NULL
+                GROUP BY a.ls_id, l.name, s.name
+                ORDER BY s.name ASC, l.name ASC
+            ");
+            $committees = $q->getResultArray();
+
+        } elseif ($levelId == 3) {
+            // Sector Level: sector, block, district, state
+            $q = $db->query("
+                SELECT sc.name AS loc1, b.name AS loc2, d.name AS loc3, s.name AS loc4,
+                       COUNT(a.id) AS member_count, a.sector_id AS location_id
+                FROM appointments a
+                INNER JOIN sectors sc ON sc.id = a.sector_id
+                INNER JOIN blocks b ON b.id = sc.block_id
+                INNER JOIN districts d ON d.id = b.district_id
+                INNER JOIN states s ON s.id = d.state_id
+                WHERE a.level_id = 3 AND a.status = 'approved' AND a.sector_id IS NOT NULL
+                GROUP BY a.sector_id, sc.name, b.name, d.name, s.name
+                ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC
+            ");
+            $committees = $q->getResultArray();
+        }
+
+        $data['committees'] = $committees;
+        $data['levelLabel'] = $levelLabels[$levelId];
+        $data['levelId'] = $levelId;
+
+        return view('admin/committee_detail', $data);
     }    public function applications()
     {
         $builder = $this->userModel;
@@ -296,22 +413,41 @@ class Admin extends BaseController
                 ->where('admins.id IS NULL');
 
         // Add search functionality if a search term is provided.
+        // Add search functionality if a search term is provided.
         if (!empty($searchTerm)) {
-            $builder->groupStart()
-                    ->like('users.first_name', $searchTerm)
-                    ->orLike('users.last_name', $searchTerm)
-                    ->orLike('users.email', $searchTerm)
-                    ->orLike('users.mobile', $searchTerm)
-                    // Search in all possible post name columns from the joined tables
-                    ->orLike('alp.name', $searchTerm)
-                    ->orLike('clp.name', $searchTerm)
-                    ->orLike('glp.name', $searchTerm)
-                    ->groupEnd();
+            $keywords = explode(' ', $searchTerm);
+            foreach ($keywords as $word) {
+                if (trim($word) === '') continue; // Skip empty spaces
+                
+                $builder->groupStart()
+                        ->like('users.first_name', $word)
+                        ->orLike('users.last_name', $word)
+                        ->orLike('users.email', $word)
+                        ->orLike('users.mobile', $word)
+                        // Post Names
+                        ->orLike('alp.name', $word)
+                        ->orLike('clp.name', $word)
+                        ->orLike('glp.name', $word)
+                        ->orLike('mlp.name', $word)
+                         // Level Name
+                        ->orLike('levels.name', $word)
+                         // Location Names
+                        ->orLike('s.name', $word)
+                        ->orLike('d.name', $word)
+                        ->orLike('b.name', $word)
+                        ->orLike('sc.name', $word)
+                        ->orLike('mla.name', $word)
+                        ->orLike('l1.name', $word)
+                        ->orLike('l2.Name', $word)
+                        ->orLike('l3.name', $word)
+                        ->orLike('l4.Name', $word)
+                        ->groupEnd();
+            }
         }
 
         $data = [
-            'users' => $builder->orderBy('users.first_name', 'ASC')
-            ->paginate(10),
+            'users' => $builder->orderBy('users.id', 'DESC')
+            ->paginate(20),
             'pager' => $this->userModel->pager,
         ];
         return view('admin/users_list', $data); // View: admin/users_list.php
@@ -368,7 +504,9 @@ class Admin extends BaseController
             $data['user']['committee_state_id'] = $appointment['state_id'];
             $data['user']['committee_district_id'] = $appointment['district_id'];
             $data['user']['block_id'] = $appointment['block_id']; // block_id (appointment)
+            $data['user']['circle_id'] = $appointment['circle_id'];
             $data['user']['sector_id'] = $appointment['sector_id'];
+            $data['user']['village_id'] = $appointment['village_id'];
             $data['user']['mla_area_id'] = $appointment['mla_area_id'];
             $data['user']['ls_id'] = $appointment['ls_id'];
             $data['user']['status'] = $appointment['status'];
@@ -394,6 +532,9 @@ class Admin extends BaseController
         $data['all_levels'] = $levelModel->orderBy('name', 'ASC')->findAll();
         $data['all_organs'] = $organModel->orderBy('name', 'ASC')->findAll();
         
+        $circleModel = new \App\Models\CircleModel();
+        $data['all_circles'] = $circleModel->orderBy('name', 'ASC')->findAll();
+        
         // Load PERSONAL location lists
         if (!empty($data['user']['state_id'])) {
             $data['districts'] = $districtModel->where('state_id', $data['user']['state_id'])->orderBy('name', 'ASC')->findAll();
@@ -412,6 +553,11 @@ class Admin extends BaseController
         if (!empty($data['user']['block_id'])) { // This is appointment block
             $sectorModel = new \App\Models\SectorModel();
             $data['current_sectors'] = $sectorModel->where('block_id', $data['user']['block_id'])->orderBy('name', 'ASC')->findAll();
+        }
+        
+        if (!empty($data['user']['sector_id'])) {
+            $villageModel = new \App\Models\VillageModel();
+            $data['current_villages'] = $villageModel->where('sector_id', $data['user']['sector_id'])->orderBy('name', 'ASC')->findAll();
         }
         
         // Load current post based on level
@@ -452,6 +598,8 @@ class Admin extends BaseController
         $updateData = [
             'first_name' => $this->request->getPost('first_name'),
             'last_name' => $this->request->getPost('last_name'),
+            'email' => $this->request->getPost('email'),
+            'mobile' => $this->request->getPost('mobile'),
             'father_name' => $this->request->getPost('father_name'),
             'date_of_birth' => $this->request->getPost('date_of_birth'),
             'gender' => $this->request->getPost('gender'),
@@ -479,7 +627,9 @@ class Admin extends BaseController
         $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
         $appointmentData['district_id'] = $this->request->getPost('committee_district_id') ?: null;
         $appointmentData['block_id'] = $this->request->getPost('block_id') ?: null;
+        $appointmentData['circle_id'] = $this->request->getPost('circle_id') ?: null;
         $appointmentData['sector_id'] = $this->request->getPost('sector_id') ?: null;
+        $appointmentData['village_id'] = $this->request->getPost('village_id') ?: null;
         $appointmentData['mla_area_id'] = $this->request->getPost('mla_area_id') ?: null;
         $appointmentData['ls_id'] = $this->request->getPost('ls_id') ?: null;
 
@@ -746,16 +896,24 @@ public function viewApplication($applicationId)
     public function addOfficeBearer()
     {
         $data['all_states'] = $this->stateModel->orderBy('name', 'ASC')->findAll();
+        
+        $organModel = new \App\Models\OrganModel();
+        $data['organs'] = $organModel->orderBy('name', 'ASC')->findAll();
+
+        $frontModel = new \App\Models\FrontModel();
+        $data['fronts'] = $frontModel->orderBy('name', 'ASC')->findAll();
+
         return view('admin/add_office_bearer', $data);
     }
 
     /**
-     * Save office bearer appointment
+     * Save the new Office Bearer
      */
     public function saveOfficeBearer()
     {
         $validation = \Config\Services::validation();
         
+        // Validation Rules
         $rules = [
             'first_name' => 'required|min_length[2]|max_length[255]',
             'last_name' => 'permit_empty|max_length[255]',
@@ -763,8 +921,9 @@ public function viewApplication($applicationId)
             'mobile' => 'required|regex_match[/^[0-9]{10}$/]',
             'state_id' => 'required|is_natural_no_zero',
             'address' => 'permit_empty|min_length[10]',
-            'appointed_level' => 'required|in_list[Sector,Block,District,MLA Constituency,MP Constituency,State]',
+            'appointed_level' => 'required|in_list[Village,Sector,Circle,Block,District,MLA Constituency,MP Constituency,State]',
             'post_id' => 'required|is_natural_no_zero',
+            'organ_id' => 'required|is_natural_no_zero', // Made required
         ];
 
         $messages = [
@@ -789,6 +948,8 @@ public function viewApplication($applicationId)
         if ($existingUser) {
             $appointmentModel = new AppointmentModel();
             $existingAppointment = $appointmentModel->where('user_id', $existingUser['id'])
+                                                    ->where('post_id', $this->request->getPost('post_id'))
+                                                    ->where('level_id', $levelMapping[$this->request->getPost('appointed_level')] ?? null) // Check for same level
                                                     ->where('status', 'approved')
                                                     ->first();
             
@@ -810,9 +971,17 @@ public function viewApplication($applicationId)
                 $locationName = 'Unknown Location';
                 $lId = $existingAppointment['level_id'];
                 
-                if ($lId == 3) { // Sector
+                if ($lId == 2) { // Village
+                    $villageModel = new \App\Models\VillageModel();
+                    $loc = $villageModel->find($existingAppointment['village_id']);
+                    $locationName = $loc ? $loc['name'] : '';
+                } elseif ($lId == 3) { // Sector
                     $sectorModel = new \App\Models\SectorModel();
                     $loc = $sectorModel->find($existingAppointment['sector_id']);
+                    $locationName = $loc ? $loc['name'] : '';
+                } elseif ($lId == 4) { // Circle
+                    $circleModel = new \App\Models\CircleModel();
+                    $loc = $circleModel->find($existingAppointment['circle_id']);
                     $locationName = $loc ? $loc['name'] : '';
                 } elseif ($lId == 5) { // Block
                     $blockModel = new \App\Models\BlockModel();
@@ -849,8 +1018,10 @@ public function viewApplication($applicationId)
         
         // Map appointed level to level_id (you may need to adjust these based on your levels table)
         $levelMapping = [
-            'Sector' => 3,      // Corrected to match committee_details
-            'Block' => 5,       // Corrected to match committee_details
+            'Village' => 2,
+            'Sector' => 3,
+            'Circle' => 4,
+            'Block' => 5,
             'District' => 16,
             'MLA Constituency' => 6,
             'MP Constituency' => 7,
@@ -893,6 +1064,7 @@ public function viewApplication($applicationId)
             'level_id' => $levelId,
             'post_id' => $postId,
             'organ_id' => $this->request->getPost('organ_id') ?: null,
+            'front_id' => $this->request->getPost('front_id') ?: null, // Added front_id
             'status' => 'approved',
             'added_by' => session()->get('admin_id'),
             'added_by_name' => session()->get('name'),
@@ -913,11 +1085,22 @@ public function viewApplication($applicationId)
              $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
              $appointmentData['district_id'] = $this->request->getPost('committee_district_id');
              $appointmentData['block_id'] = $this->request->getPost('block_id') ?: null;
+        } elseif ($appointedLevel === 'Circle') {
+             $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
+             $appointmentData['district_id'] = $this->request->getPost('committee_district_id');
+             $appointmentData['block_id'] = $this->request->getPost('block_id');
+             $appointmentData['circle_id'] = $this->request->getPost('circle_id') ?: null;
         } elseif ($appointedLevel === 'Sector') {
             $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
             $appointmentData['district_id'] = $this->request->getPost('committee_district_id');
             $appointmentData['block_id'] = $this->request->getPost('block_id');
             $appointmentData['sector_id'] = $this->request->getPost('sector_id') ?: null;
+        } elseif ($appointedLevel === 'Village') {
+            $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
+            $appointmentData['district_id'] = $this->request->getPost('committee_district_id');
+            $appointmentData['block_id'] = $this->request->getPost('block_id');
+            $appointmentData['sector_id'] = $this->request->getPost('sector_id');
+            $appointmentData['village_id'] = $this->request->getPost('village_id') ?: null;
         } elseif ($appointedLevel === 'MLA Constituency') {
              $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
              $appointmentData['district_id'] = $this->request->getPost('committee_district_id');
@@ -970,7 +1153,9 @@ public function viewApplication($applicationId)
     {
         // Map level names to level IDs (Standardized to match levels table)
         $levelMapping = [
+            'Village' => 2,
             'Sector' => 3,
+            'Circle' => 4,
             'Block' => 5,
             'District' => 16,
             'MLA Constituency' => 6,
@@ -1007,13 +1192,17 @@ public function viewApplication($applicationId)
             'district_id' => $this->request->getVar('district_id'),
             'block_id' => $this->request->getVar('block_id'),
             'sector_id' => $this->request->getVar('sector_id'),
+            'village_id' => $this->request->getVar('village_id'), // NEW
+            'circle_id' => $this->request->getVar('circle_id'),   // NEW
             'mla_area_id' => $this->request->getVar('mla_area_id'),
             'ls_id' => $this->request->getVar('ls_id'),
         ];
 
         // Map level names to level IDs and required location fields
         $levelConfig = [
+            'Village' => ['id' => 2, 'groupBy' => ['state_id', 'district_id', 'block_id', 'sector_id', 'village_id']],
             'Sector' => ['id' => 3, 'groupBy' => ['state_id', 'district_id', 'block_id', 'sector_id']],
+            'Circle' => ['id' => 4, 'groupBy' => ['state_id', 'district_id', 'block_id', 'circle_id']],
             'Block' => ['id' => 5, 'groupBy' => ['state_id', 'district_id', 'block_id']],
             'District' => ['id' => 16, 'groupBy' => ['state_id', 'district_id']],
             'MLA Constituency' => ['id' => 6, 'groupBy' => ['state_id', 'district_id', 'mla_area_id']],
@@ -1048,6 +1237,32 @@ public function viewApplication($applicationId)
             if (!empty($locationData[$field])) {
                 $builder->where('appointments.' . $field, $locationData[$field]);
             }
+        }
+
+        // Organ and Front filtering
+        $organId = $this->request->getVar('organ_id');
+        if (!empty($organId)) {
+            if ($organId == 1) {
+                // Main Committee: Include NULL or 0 for legacy records
+                $builder->groupStart()
+                    ->where('appointments.organ_id', $organId)
+                    ->orWhere('appointments.organ_id', null)
+                    ->orWhere('appointments.organ_id', 0)
+                    ->groupEnd();
+            } else {
+                $builder->where('appointments.organ_id', $organId);
+            }
+        }
+
+        $frontId = $this->request->getVar('front_id');
+        if (!empty($frontId)) {
+            $builder->where('appointments.front_id', $frontId);
+        } else {
+            // If no front is selected (e.g., Main Committee), ensure we only get posts without a front
+            $builder->groupStart()
+                    ->where('appointments.front_id', null)
+                    ->orWhere('appointments.front_id', 0)
+                    ->groupEnd();
         }
 
         $occupiedPosts = $builder->get()->getResultArray();

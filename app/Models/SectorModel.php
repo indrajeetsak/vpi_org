@@ -10,7 +10,7 @@ class SectorModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $allowedFields    = ['name', 'block_id', 'added_by', 'added_by_name', 'edited_by', 'edited_by_name', 'created_at', 'updated_at'];
+    protected $allowedFields    = ['name', 'block_id', 'circle_id', 'added_by', 'added_by_name', 'edited_by', 'edited_by_name', 'created_at', 'updated_at'];
 
     // Dates
     protected $useTimestamps = true;

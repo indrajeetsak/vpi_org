@@ -36,6 +36,12 @@ class CommitteeController extends BaseController
         $data['states'] = $this->stateModel->orderBy('name', 'ASC')->findAll();
         $data['levels'] = $this->levelModel->orderBy('id', 'ASC')->findAll();
         
+        $organModel = new \App\Models\OrganModel();
+        $data['organs'] = $organModel->orderBy('name', 'ASC')->findAll();
+
+        $frontModel = new \App\Models\FrontModel();
+        $data['fronts'] = $frontModel->orderBy('name', 'ASC')->findAll();
+
         return view('committee_details', $data);
     }
 
@@ -85,7 +91,33 @@ class CommitteeController extends BaseController
         if (!empty($filters['block_id'])) $builder->where('appointments.block_id', $filters['block_id']);
         if (!empty($filters['mla_area_id'])) $builder->where('appointments.mla_area_id', $filters['mla_area_id']);
         if (!empty($filters['sector_id'])) $builder->where('appointments.sector_id', $filters['sector_id']);
-        // Add other location filters if needed (ls_id etc)
+        if (!empty($filters['circle_id'])) $builder->where('appointments.circle_id', $filters['circle_id']);
+        
+        // Organ and Front filtering
+        $organId = $filters['organ_id'] ?? null;
+        if (!empty($organId)) {
+            if ($organId == 1) {
+                // Main Committee: Include NULL or 0 for legacy records
+                $builder->groupStart()
+                    ->where('appointments.organ_id', $organId)
+                    ->orWhere('appointments.organ_id', null)
+                    ->orWhere('appointments.organ_id', 0)
+                    ->groupEnd();
+            } else {
+                $builder->where('appointments.organ_id', $organId);
+            }
+        }
+
+        $frontId = $filters['front_id'] ?? null;
+        if (!empty($frontId)) {
+            $builder->where('appointments.front_id', $frontId);
+        } else {
+             // If no front is selected, ensure we only get posts without a front (Main Committee logic)
+             $builder->groupStart()
+                    ->where('appointments.front_id', null)
+                    ->orWhere('appointments.front_id', 0)
+                    ->groupEnd();
+        }
 
         $appointments = $builder->get()->getResultArray();
 

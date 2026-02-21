@@ -36,6 +36,12 @@
                 <a href="<?= site_url('admin/manage-constituencies') ?>" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 <?= (service('router')->controllerName() == 'App\Controllers\Admin' && service('router')->methodName() == 'manageConstituencies') ? 'bg-blue-600' : '' ?>">
                     <i class="fas fa-landmark mr-3"></i>Manage Constituencies
                 </a>
+                <a href="<?= site_url('admin/manage-circles') ?>" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 <?= (service('router')->controllerName() == 'App\Controllers\Admin\Circles') ? 'bg-blue-600' : '' ?>">
+                    <i class="fas fa-circle-notch mr-3"></i>Manage Circles
+                </a>
+                <a href="<?= site_url('admin/manage-fronts') ?>" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 <?= (service('router')->controllerName() == 'App\Controllers\Admin\Fronts') ? 'bg-blue-600' : '' ?>">
+                    <i class="fas fa-users-cog mr-3"></i>Manage Fronts
+                </a>
                 <?php if (session('admin_type') == 1): ?>
                     <a href="<?= site_url('admin/manage-admins') ?>" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 <?= (service('router')->controllerName() == 'App\Controllers\Admin' && in_array(service('router')->methodName(), ['manageAdmins', 'createAdmin', 'editAdmin'])) ? 'bg-blue-600' : '' ?>">
                         <i class="fas fa-user-shield mr-3"></i>Manage Admins

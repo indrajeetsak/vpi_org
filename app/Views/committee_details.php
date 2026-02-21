@@ -18,6 +18,32 @@
         <div class="p-6 sm:p-10">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-5">
                 
+                <!-- Organ Selection -->
+                <div class="sm:col-span-1">
+                    <label for="organ" class="block text-sm font-semibold text-gray-700 mb-2">Organ</label>
+                    <div class="relative">
+                         <select id="organ" name="organ" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
+                            <option value="">Select Organ</option>
+                            <?php foreach ($organs as $organ): ?>
+                                <option value="<?= $organ['id'] ?>"><?= esc($organ['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                 <!-- Front Selection -->
+                 <div class="sm:col-span-1" id="front-container" style="display: none;">
+                    <label for="front" class="block text-sm font-semibold text-gray-700 mb-2">Front</label>
+                    <div class="relative">
+                         <select id="front" name="front" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
+                            <option value="">Select Front</option>
+                            <?php foreach ($fronts as $front): ?>
+                                <option value="<?= $front['id'] ?>"><?= esc($front['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- State Selection -->
                 <div class="sm:col-span-1">
                     <label for="state" class="block text-sm font-semibold text-gray-700 mb-2">State</label>
@@ -35,12 +61,15 @@
                 <div class="sm:col-span-1">
                     <label for="level" class="block text-sm font-semibold text-gray-700 mb-2">Level</label>
                     <div class="relative">
-                        <select id="level" name="level" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200" disabled>
+                         <select id="level" name="level" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
                             <option value="">Select Level</option>
                             <?php 
-                                $allowedLevels = [3, 5, 6, 7, 11, 16];
+                                // Allowed IDs: Village(2), Sector(3), Circle(4), Block(5), MLA(6), MP(7), State(11), District(16)
+                                $allowedLevels = [2, 3, 4, 5, 6, 7, 11, 16];
                                 foreach ($levels as $level): 
-                                    if (in_array($level['id'], $allowedLevels)):
+                                    // Robust check: Convert both to int for comparison or check in_array loosely
+                                    // Using loose comparison by default in_array is safer for string/int mix
+                                    if (in_array($level['id'], $allowedLevels) || in_array((int)$level['id'], $allowedLevels)):
                             ?>
                                 <option value="<?= $level['id'] ?>"><?= esc($level['name']) ?></option>
                             <?php 
@@ -70,12 +99,32 @@
                     </div>
                 </div>
 
-                 <!-- Sector Location -->
+                <!-- Sector Location -->
                  <div class="sm:col-span-1" id="sector-location-container" style="display: none;">
                      <label for="sector-dynamic-location" class="block text-sm font-semibold text-gray-700 mb-2" id="sector-location-label">Sector</label>
                     <div class="relative">
                          <select id="sector-dynamic-location" name="sector_dynamic_location" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
                             <option value="">Select Sector</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Circle Location -->
+                 <div class="sm:col-span-1" id="circle-location-container" style="display: none;">
+                     <label for="circle-dynamic-location" class="block text-sm font-semibold text-gray-700 mb-2" id="circle-location-label">Circle</label>
+                    <div class="relative">
+                         <select id="circle-dynamic-location" name="circle_dynamic_location" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
+                            <option value="">Select Circle</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Village Location -->
+                 <div class="sm:col-span-1" id="village-location-container" style="display: none;">
+                     <label for="village-dynamic-location" class="block text-sm font-semibold text-gray-700 mb-2" id="village-location-label">Village</label>
+                    <div class="relative">
+                         <select id="village-dynamic-location" name="village_dynamic_location" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
+                            <option value="">Select Village</option>
                         </select>
                     </div>
                 </div>
@@ -199,9 +248,71 @@ $(document).ready(function() {
                       $('#sub-location-container').hide();
                  }
              });
-        }
-         else if (levelId == 11) { // State Level
+        } else if (levelId == 4) { // Circle Level (ID 4)
+             loadDistricts(stateId, 'dynamic-location', 'District'); // First select District
+             $('#location-container').fadeIn();
+             
+              $('#dynamic-location').off('change').on('change', function() {
+                 const districtId = $(this).val();
+                 if(districtId) {
+                     loadBlocks(districtId, 'sub-dynamic-location', 'Block');
+                      $('#sub-location-container').fadeIn();
+                 } else {
+                      $('#sub-location-container').hide();
+                      $('#circle-location-container').hide();
+                 }
+             });
+             
+             // When block selected, show circles
+             $('#sub-dynamic-location').off('change').on('change', function() {
+                 const blockId = $(this).val();
+                 if(blockId) {
+                     loadCircles('circle-dynamic-location', 'Circle');
+                      $('#circle-location-container').fadeIn();
+                 } else {
+                      $('#circle-location-container').hide();
+                 }
+             });
+        } else if (levelId == 11) { // State Level
              // No further location needed, just State
+        } else if (levelId == 2) { // Village Level (ID 2)
+             loadDistricts(stateId, 'dynamic-location', 'District'); // First select District
+             $('#location-container').fadeIn();
+             
+              $('#dynamic-location').off('change').on('change', function() {
+                 const districtId = $(this).val();
+                 if(districtId) {
+                     loadBlocks(districtId, 'sub-dynamic-location', 'Block');
+                      $('#sub-location-container').fadeIn();
+                 } else {
+                      $('#sub-location-container').hide();
+                      $('#sector-location-container').hide();
+                      $('#village-location-container').hide();
+                 }
+             });
+             
+             // When block selected, show sectors
+             $('#sub-dynamic-location').off('change').on('change', function() {
+                 const blockId = $(this).val();
+                 if(blockId) {
+                     loadSectors(blockId, 'sector-dynamic-location', 'Sector');
+                      $('#sector-location-container').fadeIn();
+                 } else {
+                      $('#sector-location-container').hide();
+                      $('#village-location-container').hide();
+                 }
+             });
+
+             // When sector selected, show villages
+             $('#sector-dynamic-location').off('change').on('change', function() {
+                 const sectorId = $(this).val();
+                 if(sectorId) {
+                     loadVillages(sectorId, 'village-dynamic-location', 'Village');
+                      $('#village-location-container').fadeIn();
+                 } else {
+                      $('#village-location-container').hide();
+                 }
+             });
         }
     });
 
@@ -259,15 +370,46 @@ $(document).ready(function() {
         });
     }
 
+    function loadCircles(elementId, label) {
+        $(`#${elementId}`).html('<option value="">Loading...</option>');
+         $(`#circle-location-label`).text(label);
+        $.get(`<?= base_url('admin/locations/get_all_circles') ?>`, function(data) {
+             let options = `<option value="">Select ${label}</option>`;
+             const list = data.circles || []; 
+             list.forEach(item => {
+                 options += `<option value="${item.id}">${item.name}</option>`;
+             });
+             $(`#${elementId}`).html(options);
+        });
+    }
+
+    function loadVillages(sectorId, elementId, label) {
+        $(`#${elementId}`).html('<option value="">Loading...</option>');
+         $(`#village-location-label`).text(label);
+        $.get(`<?= base_url('admin/locations/get_villages_by_sector/') ?>${sectorId}`, function(data) {
+             let options = `<option value="">Select ${label}</option>`;
+             // Handle response format
+             const list = data.villages || [];
+             list.forEach(item => {
+                 options += `<option value="${item.id}">${item.name}</option>`;
+             });
+             $(`#${elementId}`).html(options);
+        });
+    }
+
     function resetLocations() {
         $('#location-container').hide();
         $('#sub-location-container').hide();
         $('#sector-location-container').hide();
+        $('#circle-location-container').hide();
+        $('#village-location-container').hide();
         
         // Reset and clear events to prevent cascading to unwanted levels
         $('#dynamic-location').html('<option value="">Select Location</option>').off('change');
         $('#sub-dynamic-location').html('<option value="">Select Sub Location</option>').off('change');
         $('#sector-dynamic-location').html('<option value="">Select Sector</option>').off('change');
+        $('#circle-dynamic-location').html('<option value="">Select Circle</option>').off('change');
+        $('#village-dynamic-location').html('<option value="">Select Village</option>').off('change');
         
         checkButtonState(); // Check state on reset
     }
@@ -284,6 +426,10 @@ $(document).ready(function() {
             enable = !!$('#sub-dynamic-location').val();
         } else if (levelId == 3) { // Sector
             enable = !!$('#sector-dynamic-location').val();
+        } else if (levelId == 4) { // Circle
+            enable = !!$('#circle-dynamic-location').val();
+        } else if (levelId == 2) { // Village
+            enable = !!$('#village-dynamic-location').val();
         } else if (levelId == 6) { // MLA
             enable = !!$('#sub-dynamic-location').val();
         }
@@ -301,11 +447,24 @@ $(document).ready(function() {
     // We need to attach to dynamic dropdowns as they change. 
     // Since we re-create options, we can use a delegated event or attach in the load callbacks.
     // Delegated event is cleaner.
-    $(document).on('change', '#dynamic-location, #sub-dynamic-location, #sector-dynamic-location', checkButtonState);
+    $(document).on('change', '#dynamic-location, #sub-dynamic-location, #sector-dynamic-location, #circle-dynamic-location, #village-dynamic-location', checkButtonState);
+
+    // Organ Change
+    $('#organ').change(function() {
+        const organText = $(this).find('option:selected').text().toLowerCase().trim();
+        if (organText === 'front') {
+            $('#front-container').fadeIn();
+        } else {
+            $('#front-container').hide();
+            $('#front').val('');
+        }
+    });
 
     $('#search-btn').click(function() {
         const stateId = $('#state').val();
         const levelId = $('#level').val();
+        const organId = $('#organ').val();
+        const frontId = $('#front').val();
         
         if (!stateId || !levelId) {
             alert('Please select State and Level');
@@ -316,11 +475,16 @@ $(document).ready(function() {
         const locationId = $('#dynamic-location').val();
         const subLocationId = $('#sub-dynamic-location').val(); // Could be Block or MLA Area
         const sectorId = $('#sector-dynamic-location').val();
+        const circleId = $('#circle-dynamic-location').val();
+        const villageId = $('#village-dynamic-location').val();
         
         let data = {
             state_id: stateId,
             level_id: levelId
         };
+
+        if (organId) data.organ_id = organId;
+        if (frontId) data.front_id = frontId;
         
         // Map dynamic fields to specific IDs based on Level
         if (levelId == 16) { // District
@@ -332,6 +496,15 @@ $(document).ready(function() {
              if(locationId) data.district_id = locationId;
              if(subLocationId) data.block_id = subLocationId;
              if(sectorId) data.sector_id = sectorId;
+        } else if (levelId == 4) { // Circle
+             if(locationId) data.district_id = locationId;
+             if(subLocationId) data.block_id = subLocationId;
+             if(circleId) data.circle_id = circleId;
+        } else if (levelId == 2) { // Village
+             if(locationId) data.district_id = locationId;
+             if(subLocationId) data.block_id = subLocationId;
+             if(sectorId) data.sector_id = sectorId;
+             if(villageId) data.village_id = villageId;
         } else if (levelId == 6) { // MLA
              if(locationId) data.district_id = locationId;
              if(subLocationId) data.mla_area_id = subLocationId;
@@ -366,7 +539,7 @@ $(document).ready(function() {
                         }
 
                         let isAppointed = member.full_name !== 'Not appointed';
-                        let nameClass = isAppointed ? 'text-gray-900 font-bold' : 'text-red-500 italic font-medium';
+                        let nameClass = isAppointed ? 'text-green-900 font-bold' : 'text-red-500 italic font-medium';
                         let postClass = 'text-gray-900 font-semibold'; // Post name in red/specific color
 
                         html += `

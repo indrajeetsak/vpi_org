@@ -43,11 +43,11 @@
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" name="email" id="email" value="<?= esc($user['email'] ?? '', 'attr') ?>" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+                            <input type="email" name="email" id="email" value="<?= esc($user['email'] ?? '', 'attr') ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
                             <label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
-                            <input type="tel" name="mobile" id="mobile" value="<?= esc($user['mobile'] ?? '', 'attr') ?>" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+                            <input type="tel" name="mobile" id="mobile" value="<?= esc($user['mobile'] ?? '', 'attr') ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
                             <label for="father_name" class="block text-sm font-medium text-gray-700 mb-1">Father/Husband's Name</label>
@@ -183,12 +183,34 @@
                             </select>
                         </div>
                         <div>
+                            <label for="circle_id" class="block text-sm font-medium text-gray-700 mb-1">Circle</label>
+                            <select id="circle_id" name="circle_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select Circle</option>
+                                <?php if (!empty($all_circles)): ?>
+                                    <?php foreach ($all_circles as $circle): ?>
+                                        <option value="<?= $circle['id'] ?>" <?= ($user['circle_id'] ?? '') == $circle['id'] ? 'selected' : '' ?>><?= esc($circle['name']) ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <div>
                             <label for="sector_id" class="block text-sm font-medium text-gray-700 mb-1">Sector</label>
                             <select id="sector_id" name="sector_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                 <option value="">Select Sector</option>
                                 <?php if (!empty($current_sectors)): ?>
                                     <?php foreach ($current_sectors as $sector): ?>
                                         <option value="<?= $sector['id'] ?>" <?= ($user['sector_id'] ?? '') == $sector['id'] ? 'selected' : '' ?>><?= esc($sector['name']) ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="village_id" class="block text-sm font-medium text-gray-700 mb-1">Village/Ward</label>
+                            <select id="village_id" name="village_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select Village</option>
+                                <?php if (!empty($current_villages)): ?>
+                                    <?php foreach ($current_villages as $village): ?>
+                                        <option value="<?= $village['id'] ?>" <?= ($user['village_id'] ?? '') == $village['id'] ? 'selected' : '' ?>><?= esc($village['name']) ?></option>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </select>
@@ -341,6 +363,8 @@
     blockSelect.addEventListener('change', function() {
         const blockId = this.value;
         sectorSelect.innerHTML = '<option value="">Select Sector</option>';
+        const villageSelect = document.getElementById('village_id'); // Get village select
+        villageSelect.innerHTML = '<option value="">Select Village</option>'; // Reset village
         
         if (blockId) {
             fetch(`<?= site_url('admin/locations/get_sectors_by_block/') ?>${blockId}`)
@@ -352,6 +376,28 @@
                             option.value = sector.id;
                             option.textContent = sector.name;
                             sectorSelect.appendChild(option);
+                        });
+                    }
+                });
+        }
+    });
+
+    // Sector change - load villages
+    sectorSelect.addEventListener('change', function() {
+        const sectorId = this.value;
+        const villageSelect = document.getElementById('village_id');
+        villageSelect.innerHTML = '<option value="">Select Village</option>';
+        
+        if (sectorId) {
+            fetch(`<?= site_url('admin/locations/get_villages_by_sector/') ?>${sectorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.villages) {
+                        data.villages.forEach(village => {
+                            const option = document.createElement('option');
+                            option.value = village.id;
+                            option.textContent = village.name;
+                            villageSelect.appendChild(option);
                         });
                     }
                 });
