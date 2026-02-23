@@ -48,40 +48,55 @@ class Admin extends BaseController
         // Constituted Committee Counts
         $appointmentModel = new AppointmentModel();
         
-        $countConstituted = function($levelId, $locationField) use ($appointmentModel) {
-            $ids = $appointmentModel
+        $countConstituted = function($levelId, $locationField, $organId = null, $frontId = null) use ($appointmentModel) {
+            $builder = $appointmentModel
                 ->where('level_id', $levelId)
                 ->where('status', 'approved')
-                ->where($locationField . ' IS NOT NULL')
-                ->distinct()
-                ->findColumn($locationField);
+                ->where($locationField . ' IS NOT NULL');
+                
+            if ($organId !== null) {
+                $builder->where('organ_id', $organId);
+            }
+            if ($frontId !== null) {
+                $builder->where('front_id', $frontId);
+            }
+            
+            $ids = $builder->distinct()->findColumn($locationField);
 
             return $ids ? count(array_filter(array_unique($ids), fn($v) => $v !== null)) : 0;
         };
 
         // 1. State Level (ID 11)
-        $data['constitutedStateCommittees'] = $countConstituted(11, 'state_id');
+        $data['constitutedStateCommittees'] = $countConstituted(11, 'state_id', 1);
+        $data['wfStateCommittees'] = $countConstituted(11, 'state_id', 2, 1);
             
         // 2. District Level (ID 16)
-        $data['constitutedDistrictCommittees'] = $countConstituted(16, 'district_id');
+        $data['constitutedDistrictCommittees'] = $countConstituted(16, 'district_id', 1);
+        $data['wfDistrictCommittees'] = $countConstituted(16, 'district_id', 2, 1);
 
         // 3. MLA Level (ID 6)
-        $data['constitutedMlaCommittees'] = $countConstituted(6, 'mla_area_id');
+        $data['constitutedMlaCommittees'] = $countConstituted(6, 'mla_area_id', 1);
+        $data['wfMlaCommittees'] = $countConstituted(6, 'mla_area_id', 2, 1);
 
         // 4. Block Level (ID 5)
-        $data['constitutedBlockCommittees'] = $countConstituted(5, 'block_id');
+        $data['constitutedBlockCommittees'] = $countConstituted(5, 'block_id', 1);
+        $data['wfBlockCommittees'] = $countConstituted(5, 'block_id', 2, 1);
 
         // 5. MP Level (ID 7)
-        $data['constitutedMpCommittees'] = $countConstituted(7, 'ls_id');
+        $data['constitutedMpCommittees'] = $countConstituted(7, 'ls_id', 1);
+        $data['wfMpCommittees'] = $countConstituted(7, 'ls_id', 2, 1);
 
         // 6. Sector Level (ID 3)
-        $data['constitutedSectorCommittees'] = $countConstituted(3, 'sector_id');
+        $data['constitutedSectorCommittees'] = $countConstituted(3, 'sector_id', 1);
+        $data['wfSectorCommittees'] = $countConstituted(3, 'sector_id', 2, 1);
 
         // 7. Circle Level (ID 4)
-        $data['constitutedCircleCommittees'] = $countConstituted(4, 'circle_id');
+        $data['constitutedCircleCommittees'] = $countConstituted(4, 'circle_id', 1);
+        $data['wfCircleCommittees'] = $countConstituted(4, 'circle_id', 2, 1);
 
         // 8. Village/Ward Level (ID 2)
-        $data['constitutedVillageCommittees'] = $countConstituted(2, 'village_id');
+        $data['constitutedVillageCommittees'] = $countConstituted(2, 'village_id', 1);
+        $data['wfVillageCommittees'] = $countConstituted(2, 'village_id', 2, 1);
 
         // Payment Success Rate (Placeholder)
         // This would require a PaymentModel and logic to calculate the rate.
@@ -122,12 +137,13 @@ class Admin extends BaseController
             // State Level: just state
             $q = $db->query("
                 SELECT s.name AS loc1, NULL AS loc2, NULL AS loc3, NULL AS loc4,
-                       COUNT(a.id) AS member_count, a.state_id AS location_id
+                       COUNT(a.id) AS member_count, a.state_id AS location_id,
+                       a.organ_id, a.front_id
                 FROM appointments a
                 INNER JOIN states s ON s.id = a.state_id
                 WHERE a.level_id = 11 AND a.status = 'approved' AND a.state_id IS NOT NULL
-                GROUP BY a.state_id, s.name
-                ORDER BY s.name ASC
+                GROUP BY a.state_id, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
 
@@ -135,13 +151,14 @@ class Admin extends BaseController
             // District Level: district, state
             $q = $db->query("
                 SELECT d.name AS loc1, s.name AS loc2, NULL AS loc3, NULL AS loc4,
-                       COUNT(a.id) AS member_count, a.district_id AS location_id
+                       COUNT(a.id) AS member_count, a.district_id AS location_id,
+                       a.organ_id, a.front_id
                 FROM appointments a
                 INNER JOIN districts d ON d.id = a.district_id
                 INNER JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 16 AND a.status = 'approved' AND a.district_id IS NOT NULL
-                GROUP BY a.district_id, d.name, s.name
-                ORDER BY s.name ASC, d.name ASC
+                GROUP BY a.district_id, d.name, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, d.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
 
@@ -150,14 +167,15 @@ class Admin extends BaseController
             $q = $db->query("
                 SELECT COALESCE(m.name, CONCAT(COALESCE(d.name, 'Unknown District'), ' Area')) AS loc1,
                        d.name AS loc2, s.name AS loc3, NULL AS loc4,
-                       COUNT(a.id) AS member_count, a.mla_area_id AS location_id
+                       COUNT(a.id) AS member_count, a.mla_area_id AS location_id,
+                       a.organ_id, a.front_id
                 FROM appointments a
                 LEFT JOIN mla_area m ON m.id = a.mla_area_id
                 LEFT JOIN districts d ON d.id = COALESCE(m.district_id, a.district_id)
                 LEFT JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 6 AND a.status = 'approved' AND a.mla_area_id IS NOT NULL
-                GROUP BY a.mla_area_id, m.name, d.name, s.name
-                ORDER BY s.name ASC, d.name ASC, m.name ASC
+                GROUP BY a.mla_area_id, m.name, d.name, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, d.name ASC, m.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
 
@@ -166,14 +184,15 @@ class Admin extends BaseController
             $q = $db->query("
                 SELECT COALESCE(b.name, CONCAT(COALESCE(d.name, 'Unknown District'), ' Block')) AS loc1,
                        d.name AS loc2, s.name AS loc3, NULL AS loc4,
-                       COUNT(a.id) AS member_count, a.block_id AS location_id
+                       COUNT(a.id) AS member_count, a.block_id AS location_id,
+                       a.organ_id, a.front_id
                 FROM appointments a
                 LEFT JOIN blocks b ON b.id = a.block_id
                 LEFT JOIN districts d ON d.id = COALESCE(b.district_id, a.district_id)
                 LEFT JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 5 AND a.status = 'approved' AND a.block_id IS NOT NULL
-                GROUP BY a.block_id, b.name, d.name, s.name
-                ORDER BY s.name ASC, d.name ASC, b.name ASC
+                GROUP BY a.block_id, b.name, d.name, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, d.name ASC, b.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
 
@@ -182,13 +201,14 @@ class Admin extends BaseController
             $q = $db->query("
                 SELECT COALESCE(l.name, CONCAT(COALESCE(s.name, 'Unknown State'), ' LS')) AS loc1,
                        s.name AS loc2, NULL AS loc3, NULL AS loc4,
-                       COUNT(a.id) AS member_count, a.ls_id AS location_id
+                       COUNT(a.id) AS member_count, a.ls_id AS location_id,
+                       a.organ_id, a.front_id
                 FROM appointments a
                 LEFT JOIN ls l ON l.id = a.ls_id
                 LEFT JOIN states s ON s.id = COALESCE(l.state_id, a.state_id)
                 WHERE a.level_id = 7 AND a.status = 'approved' AND a.ls_id IS NOT NULL
-                GROUP BY a.ls_id, l.name, s.name
-                ORDER BY s.name ASC, l.name ASC
+                GROUP BY a.ls_id, l.name, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, l.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
 
@@ -197,15 +217,16 @@ class Admin extends BaseController
             $q = $db->query("
                 SELECT COALESCE(sc.name, CONCAT(COALESCE(b.name, 'Unknown Block'), ' Sector')) AS loc1,
                        b.name AS loc2, d.name AS loc3, s.name AS loc4,
-                       COUNT(a.id) AS member_count, a.sector_id AS location_id
+                       COUNT(a.id) AS member_count, a.sector_id AS location_id,
+                       a.organ_id, a.front_id
                 FROM appointments a
                 LEFT JOIN sectors sc ON sc.id = a.sector_id
                 LEFT JOIN blocks b ON b.id = COALESCE(sc.block_id, a.block_id)
                 LEFT JOIN districts d ON d.id = COALESCE(b.district_id, a.district_id)
                 LEFT JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 3 AND a.status = 'approved' AND a.sector_id IS NOT NULL
-                GROUP BY a.sector_id, sc.name, b.name, d.name, s.name
-                ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC
+                GROUP BY a.sector_id, sc.name, b.name, d.name, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
 
@@ -213,15 +234,16 @@ class Admin extends BaseController
             // Circle Level: circle, block, district, state
             $q = $db->query("
                 SELECT c.name AS loc1, b.name AS loc2, d.name AS loc3, s.name AS loc4, NULL AS loc5,
-                       COUNT(a.id) AS member_count, a.circle_id AS location_id
+                       COUNT(a.id) AS member_count, a.circle_id AS location_id,
+                       a.organ_id, a.front_id
                 FROM appointments a
                 LEFT JOIN circles c ON c.id = a.circle_id
                 LEFT JOIN blocks b ON b.id = a.block_id
                 LEFT JOIN districts d ON d.id = COALESCE(b.district_id, a.district_id)
                 LEFT JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 4 AND a.status = 'approved' AND a.circle_id IS NOT NULL
-                GROUP BY a.circle_id, c.name, b.name, d.name, s.name
-                ORDER BY s.name ASC, d.name ASC, b.name ASC, c.name ASC
+                GROUP BY a.circle_id, c.name, b.name, d.name, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, d.name ASC, b.name ASC, c.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
 
@@ -230,7 +252,8 @@ class Admin extends BaseController
             $q = $db->query("
                 SELECT COALESCE(v.name, CONCAT(COALESCE(sc.name, 'Unknown Sector'), ' Village/Ward')) AS loc1,
                        sc.name AS loc2, b.name AS loc3, d.name AS loc4, s.name AS loc5,
-                       COUNT(a.id) AS member_count, a.village_id AS location_id
+                       COUNT(a.id) AS member_count, a.village_id AS location_id,
+                       a.organ_id, a.front_id
                 FROM appointments a
                 LEFT JOIN villages v ON v.id = a.village_id
                 LEFT JOIN sectors sc ON sc.id = COALESCE(v.sector_id, a.sector_id)
@@ -238,8 +261,8 @@ class Admin extends BaseController
                 LEFT JOIN districts d ON d.id = COALESCE(b.district_id, a.district_id)
                 LEFT JOIN states s ON s.id = d.state_id
                 WHERE a.level_id = 2 AND a.status = 'approved' AND a.village_id IS NOT NULL
-                GROUP BY a.village_id, v.name, sc.name, b.name, d.name, s.name
-                ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC, v.name ASC
+                GROUP BY a.village_id, v.name, sc.name, b.name, d.name, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC, v.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
         }
@@ -453,6 +476,8 @@ class Admin extends BaseController
         $searchTerm = $this->request->getGet('search_term');
         $filterLevelId    = $this->request->getGet('level_id');
         $filterLocationId = $this->request->getGet('location_id');
+        $filterOrganId    = $this->request->getGet('organ_id');
+        $filterFrontId    = $this->request->getGet('front_id');
 
         // Start building the query.
         $builder = $this->userModel;
@@ -507,13 +532,23 @@ class Admin extends BaseController
             6  => 'appointments.mla_area_id',
             5  => 'appointments.block_id',
             7  => 'appointments.ls_id',
+            4  => 'appointments.circle_id',
             3  => 'appointments.sector_id',
+            2  => 'appointments.village_id',
         ];
 
         if (!empty($filterLevelId) && !empty($filterLocationId) && isset($levelLocationFieldMap[(int)$filterLevelId])) {
             $locField = $levelLocationFieldMap[(int)$filterLevelId];
             $builder->where('appointments.level_id', (int)$filterLevelId)
                     ->where($locField, (int)$filterLocationId);
+        }
+
+        if ($filterOrganId !== null && $filterOrganId !== '') {
+            $builder->where('appointments.organ_id', (int)$filterOrganId);
+        }
+
+        if ($filterFrontId !== null && $filterFrontId !== '') {
+            $builder->where('appointments.front_id', (int)$filterFrontId);
         }
 
         // ── Text search (general search bar) ──

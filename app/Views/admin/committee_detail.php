@@ -36,18 +36,26 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">#</th>
                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Location</th>
+                    <th class="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Type</th>
                     <th class="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Members</th>
                     <th class="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Action</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-100">
-                <?php foreach ($committees as $i => $committee): ?>
-                <tr class="hover:bg-indigo-50 transition-colors duration-150">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium"><?= $i + 1 ?></td>
+                <?php foreach ($committees as $i => $committee): 
+                    $isWf = (isset($committee['organ_id'], $committee['front_id']) && $committee['organ_id'] == 2 && $committee['front_id'] == 1);
+                    $rowClass = $isWf ? 'bg-pink-50 hover:bg-pink-100' : 'hover:bg-indigo-50';
+                    $textMutedClass = $isWf ? 'text-pink-600' : 'text-gray-500';
+                    $textBoldClass = $isWf ? 'text-pink-900' : 'text-gray-900';
+                    $iconBgClass = $isWf ? 'bg-pink-100' : 'bg-indigo-100';
+                    $iconColorClass = $isWf ? 'text-pink-600' : 'text-indigo-600';
+                ?>
+                <tr class="<?= $rowClass ?> transition-colors duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm <?= $textMutedClass ?> font-medium"><?= $i + 1 ?></td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 h-9 w-9 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-map-marker-alt text-indigo-600"></i>
+                            <div class="flex-shrink-0 h-9 w-9 <?= $iconBgClass ?> rounded-lg flex items-center justify-center">
+                                <i class="fas fa-map-marker-alt <?= $iconColorClass ?>"></i>
                             </div>
                             <div class="ml-3">
                                 <?php
@@ -60,21 +68,41 @@
                                     ]);
                                     $primary = array_shift($parts); // first = primary location name
                                 ?>
-                                <p class="text-sm font-semibold text-gray-900"><?= esc($primary) ?></p>
+                                <p class="text-sm font-semibold <?= $textBoldClass ?>"><?= esc($primary) ?></p>
                                 <?php if (!empty($parts)): ?>
-                                <p class="text-xs text-gray-500 mt-0.5"><?= esc(implode(' > ', $parts)) ?></p>
+                                <p class="text-xs <?= $textMutedClass ?> mt-0.5"><?= esc(implode(' > ', $parts)) ?></p>
                                 <?php endif; ?>
                             </div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-emerald-100 text-emerald-800">
+                        <?php if ($isWf): ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-pink-200 text-pink-800 border border-pink-300">
+                                Women Front
+                            </span>
+                        <?php else: ?>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800 border border-gray-200">
+                                Main Committee
+                            </span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold <?= $isWf ? 'bg-pink-100 text-pink-800' : 'bg-emerald-100 text-emerald-800' ?>">
                             <?= esc($committee['member_count']) ?> members
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                        <a href="<?= site_url('admin/usersList?level_id=' . (int)$levelId . '&location_id=' . urlencode($committee['location_id'] ?? '')) ?>"
-                           class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition shadow-sm">
+                        <?php 
+                            $urlParams = 'level_id=' . (int)$levelId . '&location_id=' . urlencode($committee['location_id'] ?? '');
+                            if (isset($committee['organ_id'])) {
+                                $urlParams .= '&organ_id=' . urlencode($committee['organ_id']);
+                            }
+                            if (isset($committee['front_id']) && $committee['front_id'] !== null) {
+                                $urlParams .= '&front_id=' . urlencode($committee['front_id']);
+                            }
+                        ?>
+                        <a href="<?= site_url('admin/usersList?' . $urlParams) ?>"
+                           class="inline-flex items-center px-3 py-1.5 <?= $isWf ? 'bg-pink-600 hover:bg-pink-700' : 'bg-blue-600 hover:bg-blue-700' ?> text-white rounded-lg text-xs font-medium transition shadow-sm">
                             <i class="fas fa-eye mr-1"></i> View Members
                         </a>
                     </td>

@@ -176,14 +176,14 @@
                 <!-- Helper for cards -->
                 <?php
                 $committeeCards = [
-                    ['title' => 'State Level', 'count' => $constitutedStateCommittees ?? 0, 'color' => 'indigo', 'icon' => 'fas fa-map', 'level_id' => 11],
-                    ['title' => 'District Level', 'count' => $constitutedDistrictCommittees ?? 0, 'color' => 'blue', 'icon' => 'fas fa-city', 'level_id' => 16],
-                    ['title' => 'MLA Level', 'count' => $constitutedMlaCommittees ?? 0, 'color' => 'teal', 'icon' => 'fas fa-landmark', 'level_id' => 6],
-                    ['title' => 'Block/Town Level', 'count' => $constitutedBlockCommittees ?? 0, 'color' => 'amber', 'icon' => 'fas fa-th-large', 'level_id' => 5],
-                    ['title' => 'MP Level', 'count' => $constitutedMpCommittees ?? 0, 'color' => 'rose', 'icon' => 'fas fa-flag', 'level_id' => 7],
-                    ['title' => 'Circle Level', 'count' => $constitutedCircleCommittees ?? 0, 'color' => 'cyan', 'icon' => 'fas fa-dot-circle', 'level_id' => 4],
-                    ['title' => 'Sector Level', 'count' => $constitutedSectorCommittees ?? 0, 'color' => 'violet', 'icon' => 'fas fa-vector-square', 'level_id' => 3],
-                    ['title' => 'Village/Ward Level', 'count' => $constitutedVillageCommittees ?? 0, 'color' => 'emerald', 'icon' => 'fas fa-home', 'level_id' => 2],
+                    ['title' => 'State Level', 'count' => $constitutedStateCommittees ?? 0, 'count_wf' => $wfStateCommittees ?? 0, 'color' => 'indigo', 'icon' => 'fas fa-map', 'level_id' => 11],
+                    ['title' => 'District Level', 'count' => $constitutedDistrictCommittees ?? 0, 'count_wf' => $wfDistrictCommittees ?? 0, 'color' => 'blue', 'icon' => 'fas fa-city', 'level_id' => 16],
+                    ['title' => 'MLA Level', 'count' => $constitutedMlaCommittees ?? 0, 'count_wf' => $wfMlaCommittees ?? 0, 'color' => 'teal', 'icon' => 'fas fa-landmark', 'level_id' => 6],
+                    ['title' => 'Block/Town Level', 'count' => $constitutedBlockCommittees ?? 0, 'count_wf' => $wfBlockCommittees ?? 0, 'color' => 'amber', 'icon' => 'fas fa-th-large', 'level_id' => 5],
+                    ['title' => 'MP Level', 'count' => $constitutedMpCommittees ?? 0, 'count_wf' => $wfMpCommittees ?? 0, 'color' => 'rose', 'icon' => 'fas fa-flag', 'level_id' => 7],
+                    ['title' => 'Circle Level', 'count' => $constitutedCircleCommittees ?? 0, 'count_wf' => $wfCircleCommittees ?? 0, 'color' => 'cyan', 'icon' => 'fas fa-dot-circle', 'level_id' => 4],
+                    ['title' => 'Sector Level', 'count' => $constitutedSectorCommittees ?? 0, 'count_wf' => $wfSectorCommittees ?? 0, 'color' => 'violet', 'icon' => 'fas fa-vector-square', 'level_id' => 3],
+                    ['title' => 'Village/Ward Level', 'count' => $constitutedVillageCommittees ?? 0, 'count_wf' => $wfVillageCommittees ?? 0, 'color' => 'emerald', 'icon' => 'fas fa-home', 'level_id' => 2],
                 ];
 
                 foreach ($committeeCards as $card): 
@@ -205,7 +205,11 @@
                         <div>
                             <p class="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1">Committees at</p>
                             <h4 class="text-lg font-bold text-white leading-tight mb-2"><?= $card['title'] ?></h4>
-                            <p class="text-3xl font-extrabold text-white"><?= $card['count'] ?></p>
+                            <div class="flex items-baseline space-x-3 mt-1">
+                                <span class="text-3xl font-extrabold text-white" title="Main Committees"><?= $card['count'] ?></span>
+                                <span class="text-sm font-medium text-gray-500">|</span>
+                                <span class="text-xl font-extrabold text-pink-400" title="Women Front Committees"><?= $card['count_wf'] ?? 0 ?> <span class="text-xs font-semibold">WF</span></span>
+                            </div>
                         </div>
                         <div class="<?= $iconClass ?> p-4 rounded-2xl shadow-inner group-hover:scale-110 transition-transform duration-300">
                             <i class="<?= $card['icon'] ?> text-2xl"></i>
