@@ -208,7 +208,7 @@
                             <div class="flex items-baseline space-x-3 mt-1">
                                 <span class="text-3xl font-extrabold text-white" title="Main Committees"><?= $card['count'] ?></span>
                                 <span class="text-sm font-medium text-gray-500">|</span>
-                                <span class="text-xl font-extrabold text-pink-400" title="Women Front Committees"><?= $card['count_wf'] ?? 0 ?> <span class="text-xs font-semibold">WF</span></span>
+                                <span class="text-xl font-extrabold text-pink-400" title="Women Front Committees"><?= $card['count_wf'] ?? 0 ?> <span class="text-xs font-semibold">Women Front</span></span>
                             </div>
                         </div>
                         <div class="<?= $iconClass ?> p-4 rounded-2xl shadow-inner group-hover:scale-110 transition-transform duration-300">
