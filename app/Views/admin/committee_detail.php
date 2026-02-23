@@ -31,7 +31,8 @@
 
     <!-- Committee Table -->
     <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-        <table class="min-w-full divide-y divide-gray-200">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">#</th>
@@ -110,6 +111,7 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </div>
 
     <?php else: ?>
