@@ -504,7 +504,7 @@ class Admin extends BaseController
         }
 
         $data = [
-            'users' => $builder->orderBy('users.id', 'DESC')
+            'users' => $builder->orderBy('appointments.post_id', 'ASC')
             ->paginate(20),
             'pager' => $this->userModel->pager,
         ];
@@ -1364,6 +1364,8 @@ public function viewApplication($applicationId)
             ]
         ]);
     }
+
+
 
     public function manageLocation()
     {

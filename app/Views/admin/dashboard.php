@@ -24,7 +24,7 @@
         </div>
 
         <!-- ═══ Committee Query Assistant ═══ -->
-        <div class="bg-white rounded-2xl p-6 shadow-xl border border-indigo-200">
+        <div class="hidden bg-white rounded-2xl p-6 shadow-xl border border-indigo-200">
             <div class="flex items-center gap-3 mb-4">
                 <div class="bg-indigo-700 p-2.5 rounded-xl">
                     <i class="fas fa-robot text-indigo-200 text-xl"></i>
