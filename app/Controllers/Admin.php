@@ -77,6 +77,12 @@ class Admin extends BaseController
         // 6. Sector Level (ID 3)
         $data['constitutedSectorCommittees'] = $countConstituted(3, 'sector_id');
 
+        // 7. Circle Level (ID 4)
+        $data['constitutedCircleCommittees'] = $countConstituted(4, 'circle_id');
+
+        // 8. Village/Ward Level (ID 2)
+        $data['constitutedVillageCommittees'] = $countConstituted(2, 'village_id');
+
         // Payment Success Rate (Placeholder)
         // This would require a PaymentModel and logic to calculate the rate.
         // For example:
@@ -99,7 +105,9 @@ class Admin extends BaseController
             6  => 'MLA Level',
             5  => 'Block/Town Level',
             7  => 'MP Level',
+            4  => 'Circle Level',
             3  => 'Sector Level',
+            2  => 'Village/Ward Level',
         ];
 
         if (!isset($levelLabels[$levelId])) {
@@ -198,6 +206,40 @@ class Admin extends BaseController
                 WHERE a.level_id = 3 AND a.status = 'approved' AND a.sector_id IS NOT NULL
                 GROUP BY a.sector_id, sc.name, b.name, d.name, s.name
                 ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC
+            ");
+            $committees = $q->getResultArray();
+
+        } elseif ($levelId == 4) {
+            // Circle Level: circle, block, district, state
+            $q = $db->query("
+                SELECT c.name AS loc1, b.name AS loc2, d.name AS loc3, s.name AS loc4, NULL AS loc5,
+                       COUNT(a.id) AS member_count, a.circle_id AS location_id
+                FROM appointments a
+                LEFT JOIN circles c ON c.id = a.circle_id
+                LEFT JOIN blocks b ON b.id = a.block_id
+                LEFT JOIN districts d ON d.id = COALESCE(b.district_id, a.district_id)
+                LEFT JOIN states s ON s.id = d.state_id
+                WHERE a.level_id = 4 AND a.status = 'approved' AND a.circle_id IS NOT NULL
+                GROUP BY a.circle_id, c.name, b.name, d.name, s.name
+                ORDER BY s.name ASC, d.name ASC, b.name ASC, c.name ASC
+            ");
+            $committees = $q->getResultArray();
+
+        } elseif ($levelId == 2) {
+            // Village/Ward Level: village, sector, block, district, state
+            $q = $db->query("
+                SELECT COALESCE(v.name, CONCAT(COALESCE(sc.name, 'Unknown Sector'), ' Village/Ward')) AS loc1,
+                       sc.name AS loc2, b.name AS loc3, d.name AS loc4, s.name AS loc5,
+                       COUNT(a.id) AS member_count, a.village_id AS location_id
+                FROM appointments a
+                LEFT JOIN villages v ON v.id = a.village_id
+                LEFT JOIN sectors sc ON sc.id = COALESCE(v.sector_id, a.sector_id)
+                LEFT JOIN blocks b ON b.id = COALESCE(sc.block_id, a.block_id)
+                LEFT JOIN districts d ON d.id = COALESCE(b.district_id, a.district_id)
+                LEFT JOIN states s ON s.id = d.state_id
+                WHERE a.level_id = 2 AND a.status = 'approved' AND a.village_id IS NOT NULL
+                GROUP BY a.village_id, v.name, sc.name, b.name, d.name, s.name
+                ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC, v.name ASC
             ");
             $committees = $q->getResultArray();
         }

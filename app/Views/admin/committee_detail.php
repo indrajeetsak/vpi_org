@@ -56,12 +56,13 @@
                                         $committee['loc2'] ?? null,
                                         $committee['loc3'] ?? null,
                                         $committee['loc4'] ?? null,
+                                        $committee['loc5'] ?? null,
                                     ]);
                                     $primary = array_shift($parts); // first = primary location name
                                 ?>
                                 <p class="text-sm font-semibold text-gray-900"><?= esc($primary) ?></p>
                                 <?php if (!empty($parts)): ?>
-                                <p class="text-xs text-gray-500 mt-0.5"><?= esc(implode(', ', $parts)) ?></p>
+                                <p class="text-xs text-gray-500 mt-0.5"><?= esc(implode(' > ', $parts)) ?></p>
                                 <?php endif; ?>
                             </div>
                         </div>

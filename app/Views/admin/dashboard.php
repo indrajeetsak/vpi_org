@@ -181,7 +181,9 @@
                     ['title' => 'MLA Level', 'count' => $constitutedMlaCommittees ?? 0, 'color' => 'teal', 'icon' => 'fas fa-landmark', 'level_id' => 6],
                     ['title' => 'Block/Town Level', 'count' => $constitutedBlockCommittees ?? 0, 'color' => 'amber', 'icon' => 'fas fa-th-large', 'level_id' => 5],
                     ['title' => 'MP Level', 'count' => $constitutedMpCommittees ?? 0, 'color' => 'rose', 'icon' => 'fas fa-flag', 'level_id' => 7],
+                    ['title' => 'Circle Level', 'count' => $constitutedCircleCommittees ?? 0, 'color' => 'cyan', 'icon' => 'fas fa-dot-circle', 'level_id' => 4],
                     ['title' => 'Sector Level', 'count' => $constitutedSectorCommittees ?? 0, 'color' => 'violet', 'icon' => 'fas fa-vector-square', 'level_id' => 3],
+                    ['title' => 'Village/Ward Level', 'count' => $constitutedVillageCommittees ?? 0, 'color' => 'emerald', 'icon' => 'fas fa-home', 'level_id' => 2],
                 ];
 
                 foreach ($committeeCards as $card): 
@@ -192,7 +194,9 @@
                         'teal' => 'bg-gray-700 text-teal-400',
                         'amber' => 'bg-gray-700 text-amber-400',
                         'rose' => 'bg-gray-700 text-rose-400',
+                        'cyan' => 'bg-gray-700 text-cyan-400',
                         'violet' => 'bg-gray-700 text-violet-400',
+                        'emerald' => 'bg-gray-700 text-emerald-400',
                         default => 'bg-gray-700 text-gray-400'
                     };
                 ?>
