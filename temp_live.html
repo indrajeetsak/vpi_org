@@ -1,9 +1,28 @@
-<?= $this->extend('layouts/modern') ?>
-
-<?= $this->section('title') ?>Committee Details<?= $this->endSection() ?>
-
-<?= $this->section('content') ?>
-<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Committee Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        indigo: {
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
         <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 sm:text-4xl">
             Committee Details
@@ -24,10 +43,9 @@
                     <div class="relative">
                          <select id="organ" name="organ" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
                             <option value="">Select Organ</option>
-                            <?php foreach ($organs as $organ): ?>
-                                <option value="<?= $organ['id'] ?>"><?= esc($organ['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                                                            <option value="2">Front</option>
+                                                            <option value="1">Main Committee</option>
+                                                    </select>
                     </div>
                 </div>
 
@@ -37,10 +55,8 @@
                     <div class="relative">
                          <select id="front" name="front" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
                             <option value="">Select Front</option>
-                            <?php foreach ($fronts as $front): ?>
-                                <option value="<?= $front['id'] ?>"><?= esc($front['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                                                            <option value="1">Women Front</option>
+                                                    </select>
                     </div>
                 </div>
 
@@ -50,10 +66,43 @@
                     <div class="relative">
                         <select id="state" name="state" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
                             <option value="">Select State</option>
-                            <?php foreach ($states as $state): ?>
-                                <option value="<?= $state['id'] ?>"><?= esc($state['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                                                            <option value="1">Andaman and Nicobar Islands</option>
+                                                            <option value="2">Andhra Pradesh</option>
+                                                            <option value="3">Arunachal Pradesh</option>
+                                                            <option value="4">Assam</option>
+                                                            <option value="5">Bihar</option>
+                                                            <option value="6">Chandigarh</option>
+                                                            <option value="7">Chhattisgarh</option>
+                                                            <option value="8">Dadra and Nagar Haveli and Daman and Diu</option>
+                                                            <option value="9">Delhi</option>
+                                                            <option value="10">Goa</option>
+                                                            <option value="11">Gujarat</option>
+                                                            <option value="12">Haryana</option>
+                                                            <option value="13">Himachal Pradesh</option>
+                                                            <option value="14">Jammu and Kashmir</option>
+                                                            <option value="15">Jharkhand</option>
+                                                            <option value="16">Karnataka</option>
+                                                            <option value="17">Kerala</option>
+                                                            <option value="18">Ladakh</option>
+                                                            <option value="19">Lakshadweep</option>
+                                                            <option value="20">Madhya Pradesh</option>
+                                                            <option value="21">Maharashtra</option>
+                                                            <option value="22">Manipur</option>
+                                                            <option value="23">Meghalaya</option>
+                                                            <option value="24">Mizoram</option>
+                                                            <option value="25">Nagaland</option>
+                                                            <option value="26">Odisha</option>
+                                                            <option value="27">Puducherry</option>
+                                                            <option value="28">Punjab</option>
+                                                            <option value="29">Rajasthan</option>
+                                                            <option value="30">Sikkim</option>
+                                                            <option value="31">Tamil Nadu</option>
+                                                            <option value="32">Telangana</option>
+                                                            <option value="33">Tripura</option>
+                                                            <option value="34">Uttar Pradesh</option>
+                                                            <option value="35">Uttarakhand</option>
+                                                            <option value="36">West Bengal</option>
+                                                    </select>
                     </div>
                 </div>
 
@@ -63,20 +112,15 @@
                     <div class="relative">
                          <select id="level" name="level" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
                             <option value="">Select Level</option>
-                            <?php 
-                                // Allowed IDs: Village(2), Sector(3), Circle(4), Block(5), MLA(6), MP(7), State(11), District(16)
-                                $allowedLevels = [2, 3, 4, 5, 6, 7, 11, 16];
-                                foreach ($levels as $level): 
-                                    // Robust check: Convert both to int for comparison or check in_array loosely
-                                    // Using loose comparison by default in_array is safer for string/int mix
-                                    if (in_array($level['id'], $allowedLevels) || in_array((int)$level['id'], $allowedLevels)):
-                            ?>
-                                <option value="<?= $level['id'] ?>"><?= esc($level['name']) ?></option>
-                            <?php 
-                                    endif;
-                                endforeach; 
-                            ?>
-                        </select>
+                                                            <option value="2">Village/Ward</option>
+                                                            <option value="3">Sector (Panchayat)</option>
+                                                            <option value="4">Circle</option>
+                                                            <option value="5">Block /Town</option>
+                                                            <option value="6">State Assembly (MLA) Constituency</option>
+                                                            <option value="7">Country Parliament (MP) Constituency</option>
+                                                            <option value="11">State</option>
+                                                            <option value="16">District</option>
+                                                    </select>
                     </div>
                 </div>
 
@@ -320,132 +364,80 @@ $(document).ready(function() {
     function loadDistricts(stateId, elementId, label) {
         $(`#${elementId}`).html('<option value="">Loading...</option>');
         $(`#location-label`).text(label);
-        $.ajax({
-            url: `<?= base_url('auth/get-districts/') ?>${stateId}`,
-            method: 'GET',
-            complete: function(xhr) {
-                 const response = xhr.responseText;
-                 let options = `<option value="">Select ${label}</option>`;
-                 let res = { data: [] };
-                 try {
-                     res = typeof response === 'string' ? JSON.parse(response) : response;
-                 } catch (e) {}
-                 const list = res.data || [];
-                 list.forEach(item => {
-                     options += `<option value="${item.id}">${item.name}</option>`;
-                 });
-                 $(`#${elementId}`).html(options);
-            }
+        $.get(`https://org.votersparty.in/auth/get-districts/${stateId}`, function(response) {
+             let options = `<option value="">Select ${label}</option>`;
+             const list = response.data || []; // Handle {success:true, data:[...]} format
+             list.forEach(item => {
+                 options += `<option value="${item.id}">${item.name}</option>`;
+             });
+             $(`#${elementId}`).html(options);
         });
     }
 
     function loadBlocks(districtId, elementId, label) {
         $(`#${elementId}`).html('<option value="">Loading...</option>');
          $(`#sub-location-label`).text(label);
-        $.ajax({
-            url: `<?= base_url('auth/get-blocks/') ?>${districtId}`,
-            method: 'GET',
-            complete: function(xhr) {
-                 const response = xhr.responseText;
-                 let options = `<option value="">Select ${label}</option>`;
-                 let res = { data: [] };
-                 try {
-                     res = typeof response === 'string' ? JSON.parse(response) : response;
-                 } catch (e) {}
-                 const list = res.data || [];
-                 list.forEach(item => {
-                     options += `<option value="${item.id}">${item.name}</option>`;
-                 });
-                 $(`#${elementId}`).html(options);
-            }
+        $.get(`https://org.votersparty.in/auth/get-blocks/${districtId}`, function(response) {
+             let options = `<option value="">Select ${label}</option>`;
+             const list = response.data || []; // Handle {success:true, data:[...]} format
+             list.forEach(item => {
+                 options += `<option value="${item.id}">${item.name}</option>`;
+             });
+             $(`#${elementId}`).html(options);
         });
     }
     
      function loadMlaAreas(districtId, elementId, label) {
         $(`#${elementId}`).html('<option value="">Loading...</option>');
          $(`#sub-location-label`).text(label);
-        $.ajax({
-            url: `<?= base_url('auth/get-mla-areas/') ?>${districtId}`,
-            method: 'GET',
-            complete: function(xhr) {
-                 const response = xhr.responseText;
-                 let options = `<option value="">Select ${label}</option>`;
-                 let res = { data: [] };
-                 try {
-                     res = typeof response === 'string' ? JSON.parse(response) : response;
-                 } catch (e) {}
-                 const list = res.data || [];
-                 list.forEach(item => {
-                     options += `<option value="${item.id}">${item.name}</option>`;
-                 });
-                 $(`#${elementId}`).html(options);
-            }
+        $.get(`https://org.votersparty.in/auth/get-mla-areas/${districtId}`, function(response) {
+             let options = `<option value="">Select ${label}</option>`;
+             const list = response.data || []; // Handle {success:true, data:[...]} format
+             list.forEach(item => {
+                 options += `<option value="${item.id}">${item.name}</option>`;
+             });
+             $(`#${elementId}`).html(options);
         });
     }
     
     function loadSectors(blockId, elementId, label) {
         $(`#${elementId}`).html('<option value="">Loading...</option>');
          $(`#sector-location-label`).text(label);
-        $.ajax({
-            url: `<?= base_url('committee/get-sectors/') ?>${blockId}`,
-            method: 'GET',
-            complete: function(xhr) {
-                 const data = xhr.responseText;
-                 let options = `<option value="">Select ${label}</option>`;
-                 let res = { data: [] };
-                 try {
-                     res = typeof data === 'string' ? JSON.parse(data) : data;
-                 } catch (e) {}
-                 const list = Array.isArray(res) ? res : (res.data || []);
-                 list.forEach(item => {
-                     options += `<option value="${item.id}">${item.name}</option>`;
-                 });
-                 $(`#${elementId}`).html(options);
-            }
+        $.get(`https://org.votersparty.in/committee/get-sectors/${blockId}`, function(data) {
+             let options = `<option value="">Select ${label}</option>`;
+             // CommitteeController returns array directly via respond() usually, but let's be safe
+             const list = Array.isArray(data) ? data : (data.data || []);
+             list.forEach(item => {
+                 options += `<option value="${item.id}">${item.name}</option>`;
+             });
+             $(`#${elementId}`).html(options);
         });
     }
 
     function loadCircles(elementId, label) {
         $(`#${elementId}`).html('<option value="">Loading...</option>');
          $(`#circle-location-label`).text(label);
-        $.ajax({
-            url: `<?= base_url('committee/get-all-circles') ?>`,
-            method: 'GET',
-            complete: function(xhr) {
-                 const data = xhr.responseText;
-                 let options = `<option value="">Select ${label}</option>`;
-                 let res = { circles: [] };
-                 try {
-                     res = typeof data === 'string' ? JSON.parse(data) : data;
-                 } catch (e) {}
-                 const list = res.circles || []; 
-                 list.forEach(item => {
-                     options += `<option value="${item.id}">${item.name}</option>`;
-                 });
-                 $(`#${elementId}`).html(options);
-            }
+        $.get(`https://org.votersparty.in/admin/locations/get_all_circles`, function(data) {
+             let options = `<option value="">Select ${label}</option>`;
+             const list = data.circles || []; 
+             list.forEach(item => {
+                 options += `<option value="${item.id}">${item.name}</option>`;
+             });
+             $(`#${elementId}`).html(options);
         });
     }
 
     function loadVillages(sectorId, elementId, label) {
         $(`#${elementId}`).html('<option value="">Loading...</option>');
          $(`#village-location-label`).text(label);
-        $.ajax({
-            url: `<?= base_url('committee/get-villages-by-sector/') ?>${sectorId}`,
-            method: 'GET',
-            complete: function(xhr) {
-                 const data = xhr.responseText;
-                 let options = `<option value="">Select ${label}</option>`;
-                 let res = { villages: [] };
-                 try {
-                     res = typeof data === 'string' ? JSON.parse(data) : data;
-                 } catch (e) {}
-                 const list = res.villages || [];
-                 list.forEach(item => {
-                     options += `<option value="${item.id}">${item.name}</option>`;
-                 });
-                 $(`#${elementId}`).html(options);
-            }
+        $.get(`https://org.votersparty.in/admin/locations/get_villages_by_sector/${sectorId}`, function(data) {
+             let options = `<option value="">Select ${label}</option>`;
+             // Handle response format
+             const list = data.villages || [];
+             list.forEach(item => {
+                 options += `<option value="${item.id}">${item.name}</option>`;
+             });
+             $(`#${elementId}`).html(options);
         });
     }
 
@@ -568,7 +560,7 @@ $(document).ready(function() {
         $('#no-results').hide();
 
         $.ajax({
-            url: '<?= base_url('committee/get-members') ?>',
+            url: 'https://org.votersparty.in/committee/get-members',
             method: 'POST',
             dataType: 'json',
             contentType: 'application/json',
@@ -612,14 +604,8 @@ $(document).ready(function() {
                     });
                     $('#results-grid').html(html);
                     $('#results-container').fadeIn();
-                    $('html, body').animate({
-                        scrollTop: $('#results-container').offset().top - 50
-                    }, 500);
                 } else {
                     $('#no-results').fadeIn();
-                    $('html, body').animate({
-                        scrollTop: $('#no-results').offset().top - 50
-                    }, 500);
                 }
             },
             error: function(xhr, status, error) {
@@ -631,4 +617,6 @@ $(document).ready(function() {
     });
 });
 </script>
-<?= $this->endSection() ?>
+    </div>
+    </body>
+</html>

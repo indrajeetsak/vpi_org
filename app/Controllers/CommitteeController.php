@@ -153,4 +153,28 @@ class CommitteeController extends BaseController
         $sectors = $sectorModel->where('block_id', $blockId)->orderBy('name', 'ASC')->findAll();
         return $this->respond($sectors);
     }
+    
+    public function getAllCircles()
+    {
+        $circleModel = new \App\Models\CircleModel();
+        $circles = $circleModel->orderBy('name', 'ASC')->findAll();
+
+        if (!empty($circles)) {
+            return $this->respond(['success' => true, 'circles' => $circles]);
+        } else {
+            return $this->respond(['success' => false, 'message' => 'No circles found.']);
+        }
+    }
+
+    public function getVillagesBySector($sectorId)
+    {
+        $villageModel = new \App\Models\VillageModel();
+        $villages = $villageModel->where('sector_id', $sectorId)->orderBy('name', 'ASC')->findAll();
+
+        if (!empty($villages)) {
+            return $this->respond(['success' => true, 'villages' => $villages]);
+        } else {
+            return $this->respond(['success' => false, 'message' => 'No villages found for this sector.']);
+        }
+    }
 }

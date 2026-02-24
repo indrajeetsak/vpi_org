@@ -67,6 +67,9 @@ $routes->group('payment', ['filter' => 'auth'], function($routes) {
 $routes->get('committee-details', 'CommitteeController::index');
 $routes->post('committee/get-members', 'CommitteeController::getMembers');
 $routes->get('committee/get-sectors/(:num)', 'CommitteeController::getSectors/$1');
+$routes->get('admin/locations/get_all_circles', 'CommitteeController::getAllCircles'); // keep for backward compatibility short term
+$routes->get('committee/get-all-circles', 'CommitteeController::getAllCircles');
+$routes->get('committee/get-villages-by-sector/(:num)', 'CommitteeController::getVillagesBySector/$1');
 
 // Temporary Debug Route - REMOVE AFTER USE
 $routes->get('admin/check_user/(:segment)', 'Admin::checkAdminUser/$1');
@@ -109,10 +112,8 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->get('locations/get_sectors_by_block/(:num)', 'Admin\\Locations::getSectorsByBlock/$1');
     $routes->post('locations/add_sectors', 'Admin\\Locations::addSectors');
     // Villages routes
-    $routes->get('locations/get_villages_by_sector/(:num)', 'Admin\\Locations::getVillagesBySector/$1');
-    $routes->post('locations/add_villages', 'Admin\\Locations::addVillages');
-    // Circles routes (Fixed)
-    $routes->get('locations/get_all_circles', 'Admin\\Locations::getAllCircles');
+    $routes->get('locations/get_villages_by_sector/(:num)', 'Admin\Locations::getVillagesBySector/$1');
+    $routes->post('locations/add_villages', 'Admin\Locations::addVillages');
     $routes->get('logout', 'Auth::logout'); // Admin logout
 
     $routes->get('manage-location', 'Admin::manageLocation');
