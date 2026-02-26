@@ -62,8 +62,11 @@
                         <h1 class="text-xl font-semibold text-gray-700"><?= $this->renderSection('headerTitle') ?></h1>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-gray-700">Welcome, Admin!</span>
-                        <a href="<?= site_url('admin/logout') ?>" class="text-gray-700 hover:text-gray-900">
+                        <a href="<?= site_url('admin/clear-cache') ?>" class="text-xs bg-red-500 text-white px-3 py-1.5 rounded shadow hover:bg-red-600 transition" onclick="return confirm('Are you sure you want to clear the server cache?');">
+                            <i class="fas fa-trash-alt mr-1"></i> Clear Cache
+                        </a>
+                        <span class="text-gray-700 font-medium hidden sm:inline-block">Welcome, Admin!</span>
+                        <a href="<?= site_url('admin/logout') ?>" class="text-gray-700 hover:text-red-500 transition ml-2">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     </div>

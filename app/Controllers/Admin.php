@@ -1079,73 +1079,14 @@ public function viewApplication($applicationId)
         // Check if user exists
         $existingUser = $this->userModel->where('mobile', $this->request->getPost('mobile'))->first();
         
-        // If user exists, check if they have an active appointment
+        // If user exists, immediately return an error because mobile numbers must be unique per office bearer
         if ($existingUser) {
-            $appointmentModel = new AppointmentModel();
-            $existingAppointment = $appointmentModel->where('user_id', $existingUser['id'])
-                                                    ->where('post_id', $this->request->getPost('post_id'))
-                                                    ->where('level_id', $levelMapping[$this->request->getPost('appointed_level')] ?? null) // Check for same level
-                                                    ->where('status', 'approved')
-                                                    ->first();
-            
-            if ($existingAppointment) {
-                 // Fetch Level Name
-                $levelModel = new \App\Models\LevelModel();
-                $level = $levelModel->find($existingAppointment['level_id']);
-                $levelName = $level ? $level['name'] : 'Unknown Level';
-
-                // Fetch Post Name
-                $postName = 'Unknown Post';
-                $postModel = new \App\Models\PostModel();
-                $post = $postModel->getPostByIdAndLevel($existingAppointment['post_id'], $existingAppointment['level_id']);
-                if ($post) {
-                    $postName = $post['name'];
-                }
-
-                // Fetch Location Name
-                $locationName = 'Unknown Location';
-                $lId = $existingAppointment['level_id'];
-                
-                if ($lId == 2) { // Village
-                    $villageModel = new \App\Models\VillageModel();
-                    $loc = $villageModel->find($existingAppointment['village_id']);
-                    $locationName = $loc ? $loc['name'] : '';
-                } elseif ($lId == 3) { // Sector
-                    $sectorModel = new \App\Models\SectorModel();
-                    $loc = $sectorModel->find($existingAppointment['sector_id']);
-                    $locationName = $loc ? $loc['name'] : '';
-                } elseif ($lId == 4) { // Circle
-                    $circleModel = new \App\Models\CircleModel();
-                    $loc = $circleModel->find($existingAppointment['circle_id']);
-                    $locationName = $loc ? $loc['name'] : '';
-                } elseif ($lId == 5) { // Block
-                    $blockModel = new \App\Models\BlockModel();
-                    $loc = $blockModel->find($existingAppointment['block_id']);
-                    $locationName = $loc ? $loc['name'] : '';
-                } elseif ($lId == 16) { // District
-                    $districtModel = new \App\Models\DistrictModel();
-                    $loc = $districtModel->find($existingAppointment['district_id']);
-                    $locationName = $loc ? $loc['name'] : '';
-                } elseif ($lId == 6) { // MLA
-                    $mlaModel = new \App\Models\MlaAreaModel();
-                    $loc = $mlaModel->find($existingAppointment['mla_area_id']);
-                    $locationName = $loc ? $loc['name'] : '';
-                } elseif ($lId == 7) { // MP
-                    $fourLsModel = new \App\Models\FourLsModel();
-                    $loc = $fourLsModel->find($existingAppointment['ls_id']); // Assuming ls_id maps to 4LS
-                    $locationName = $loc ? $loc['name'] : '';
-                } elseif ($lId == 11) { // State
-                    $stateModel = new \App\Models\StateModel();
-                    $loc = $stateModel->find($existingAppointment['state_id']);
-                    $locationName = $loc ? $loc['name'] : '';
-                }
-
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => "Duplicate appointment detected. Please check the error below.",
-                    'errors' => ['mobile' => "This person is already appointed as $postName at '$locationName' '$levelName'"]
-                ]);
-            }
+            $existingName = trim($existingUser['first_name'] . ' ' . ($existingUser['last_name'] ?? ''));
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => "Validation failed",
+                'errors' => ['mobile' => "The number is already associated to another office bearer ($existingName)."]
+            ]);
         }
 
         $appointedLevel = $this->request->getPost('appointed_level');
@@ -1952,5 +1893,39 @@ public function viewApplication($applicationId)
 
         fclose($output);
         exit;
+    }
+
+    /**
+     * Clear the server cache and redirect back
+     */
+    public function clearCache()
+    {
+        if (session('admin_type') != 1) {
+            return redirect()->to('admin/dashboard')->with('error', 'Access Denied: Only Super Admins can clear the cache.');
+        }
+
+        try {
+            // Delete cache files manually if they exist in writable/cache,
+            // or use standard cache cleaning
+            $cachePath = WRITEPATH . 'cache/';
+            
+            // Try CodeIgniter's cache service first
+            \Config\Services::cache()->clean();
+
+            // Manually clear files in writable/cache just in case
+            if (is_dir($cachePath)) {
+                $files = glob($cachePath . '*');
+                foreach ($files as $file) {
+                    if (is_file($file) && basename($file) !== 'index.html' && basename($file) !== '.htaccess') {
+                        @unlink($file);
+                    }
+                }
+            }
+
+            return redirect()->back()->with('success', 'Server cache cleared successfully.');
+        } catch (\Exception $e) {
+            log_message('error', 'Failed to clear cache: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to clear cache: ' . $e->getMessage());
+        }
     }
 }

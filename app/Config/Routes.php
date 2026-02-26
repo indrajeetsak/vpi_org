@@ -80,6 +80,7 @@ $routes->get('debug/columns/(:segment)', 'Debug::listColumns/$1');
 $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->get('/', 'Admin::index');
     $routes->get('dashboard', 'Admin::index'); // Explicit route for admin dashboard
+    $routes->get('clear-cache', 'Admin::clearCache');
     $routes->get('applications', 'Admin::applications');
     $routes->get('usersRequest', 'Admin::applications'); // Route for the 'Application Requests' page
     $routes->get('users/viewApplication/(:num)', 'Admin::viewApplication/$1');// 'GET: admin/users/approveApplication/3'.

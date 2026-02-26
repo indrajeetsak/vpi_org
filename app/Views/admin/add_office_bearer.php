@@ -868,13 +868,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         const input = document.getElementById(field);
                         const errorSpan = document.getElementById(field + '-error');
                         
-                        if (input) input.classList.add('border-red-500');
-
                         // Check for duplicate condition
-                        if (field === 'mobile' && error.includes('already appointed')) {
-                            isDuplicate = error; // Store the message for popup
-                            continue; // Skip showing inline text for duplicate, as popup handles it
+                        if (field === 'mobile' && error.includes('already associated')) {
+                            isDuplicate = true;
+                            continue; // Skip adding border-red-500 and showing inline text for mobile
                         }
+
+                        if (input) input.classList.add('border-red-500');
 
                         if (errorSpan) {
                             errorSpan.textContent = error;
@@ -886,10 +886,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isDuplicate) {
                     // Show specialized Alert for duplicate
                     Swal.fire({
-                        icon: 'warning',
-                        title: 'Duplicate Appointment',
-                        text: isDuplicate,
-                        confirmButtonText: 'OK, I Check',
+                        icon: 'error',
+                        title: 'Duplicate Mobile',
+                        text: 'This mobile number is associated with another office bearer. Use another number',
                         confirmButtonColor: '#2563eb' // Ensure button is visible (Blue-600)
                     });
                 } else {
