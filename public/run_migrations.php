@@ -1,29 +1,19 @@
 <?php
 /**
  * Script to run CodeIgniter 4 database migrations from the web interface.
- * Useful for hosting environments where SSH/CLI access to run 'php spark
- * migrate' is not available.
+ * Useful for hosting environments where SSH/CLI access is not available.
  * 
- * IMPORTANT: Delete or move this file outside of public access after running
- * to prevent unauthorized execution.
+ * IMPORTANT: Delete this file after running to prevent unauthorized execution.
  */
 
-// Define FCPATH assuming this script is in the project root alongside the 'public' directory
-define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR);
-
-// Change working directory to public/
-if (is_dir(FCPATH)) {
-    chdir(FCPATH);
-} else {
-    // Fallback if public folder doesn't exist, assume script is within public itself
-    define('FCPATH_FALLBACK', __DIR__ . DIRECTORY_SEPARATOR);
-    chdir(FCPATH_FALLBACK);
-}
+// Define FCPATH as the current directory (public)
+define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
+chdir(FCPATH);
 
 // Load the paths config file
-$pathsPath = realpath(__DIR__ . '/app/Config/Paths.php');
+$pathsPath = realpath(FCPATH . '../app/Config/Paths.php');
 if (!$pathsPath) {
-    die("Error: Could not find app/Config/Paths.php. Make sure this script is in your project root.");
+    die("Error: Could not find app/Config/Paths.php. Make sure this script is in your 'public' directory.");
 }
 require $pathsPath;
 
@@ -45,7 +35,6 @@ try {
     if ($migrate->latest()) {
         echo "<h3 style='color: green;'>Migrations ran successfully!</h3>";
         
-        // Show current migration status / history mapping
         $history = $migrate->getHistory();
         if(!empty($history)) {
             echo "<ul>";
@@ -55,7 +44,7 @@ try {
             echo "</ul>";
         }
     } else {
-        echo "<h3 style='color: orange;'>Nothing to migrate. It seems your database already has the latest migrations.</h3>";
+        echo "<h3 style='color: orange;'>Nothing to migrate. Your database is up-to-date.</h3>";
     }
 } catch (\Throwable $e) {
     echo "<h3 style='color: red;'>Error running migrations:</h3>";
@@ -64,5 +53,5 @@ try {
 }
 
 echo "<hr/>";
-echo "<p><strong>Security Warning:</strong> Please delete this <code>run_migrations.php</code> file from your server after you have finished running the migrations to prevent unauthorized access.</p>";
+echo "<p><strong>Security Warning:</strong> Please delete this <code>run_migrations.php</code> file from your server after use.</p>";
 echo "</body></html>";
