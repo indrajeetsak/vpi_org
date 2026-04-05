@@ -366,17 +366,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const pollingBoothSelect = document.getElementById('polling_booth_id');
     const lsSelect = document.getElementById('ls_id');
 
-    // Initialize Tom Select for Polling Booth
-    const pollingBoothChoices = new TomSelect(pollingBoothSelect, {
-        searchField: 'text',
-        maxOptions: null,
-        placeholder: 'Select Polling Booth',
-        render: {
-            no_results: function(data, escape) {
-                return '<div class="no-results">No results for "' + escape(data.input) + '"</div>';
-            }
-        }
-    });
+    // Tom Select instance — initialized lazily when polling booths load
+    let pollingBoothTomSelect = null;
     
     // Wrappers
     const committeeStateWrapper = document.getElementById('committee_state_wrapper');
@@ -756,9 +747,10 @@ document.addEventListener('DOMContentLoaded', function() {
         villageSelect.innerHTML = '<option value="">Select Village</option>';
         mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
         
-        pollingBoothChoices.clearOptions();
-        pollingBoothChoices.addOption({value: '', text: 'Select Polling Booth'});
-        pollingBoothChoices.setValue('');
+        if (pollingBoothTomSelect) {
+            pollingBoothTomSelect.clearOptions();
+            pollingBoothTomSelect.setValue('');
+        }
         
         blockWrapper.classList.add('hidden');
         mlaAreaWrapper.classList.add('hidden');
@@ -894,9 +886,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedMlaAreaId = this.value;
         const level = appointedLevelSelect.value;
         
-        pollingBoothChoices.clearOptions();
-        pollingBoothChoices.addOption({value: '', text: 'Select Polling Booth'});
-        pollingBoothChoices.setValue('');
+        if (pollingBoothTomSelect) {
+            pollingBoothTomSelect.clearOptions();
+            pollingBoothTomSelect.setValue('');
+        }
         
         pollingBoothWrapper.classList.add('hidden');
         resetPostsTable();
@@ -909,12 +902,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetch(`<?= site_url('admin/locations/get_polling_booths_by_mla_area/') ?>${selectedMlaAreaId}`)
                     .then(response => response.json())
                     .then(data => {
+                        // Destroy previous instance if any
+                        if (pollingBoothTomSelect) {
+                            pollingBoothTomSelect.destroy();
+                            pollingBoothTomSelect = null;
+                        }
+                        // Reset the native select
+                        pollingBoothSelect.innerHTML = '<option value="">Select Polling Booth</option>';
                         if (data.success && data.polling_booths) {
-                            pollingBoothChoices.clearOptions();
                             data.polling_booths.forEach(booth => {
-                                pollingBoothChoices.addOption({value: booth.id, text: booth.name});
+                                const opt = document.createElement('option');
+                                opt.value = booth.id;
+                                opt.textContent = booth.name;
+                                pollingBoothSelect.appendChild(opt);
                             });
                         }
+                        // Initialize Tom Select lazily
+                        pollingBoothTomSelect = new TomSelect(pollingBoothSelect, {
+                            searchField: 'text',
+                            maxOptions: null,
+                            placeholder: 'Select Polling Booth',
+                            render: {
+                                no_results: function(data, escape) {
+                                    return '<div class="no-results">No results for "' + escape(data.input) + '"</div>';
+                                }
+                            },
+                            onChange: function() { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); }
+                        });
                     });
             }
         }
