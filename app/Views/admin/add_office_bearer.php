@@ -683,9 +683,11 @@ document.addEventListener('DOMContentLoaded', function() {
         villageSelect.innerHTML = '<option value="">Select Village</option>';
         mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
         
-        pollingBoothChoices.clearStore();
-        pollingBoothChoices.clearChoices();
-        pollingBoothChoices.setChoices([{value: '', label: 'Select Polling Booth', selected: true, disabled: false}], 'value', 'label', true);
+        if (pollingBoothTomSelect) {
+            pollingBoothTomSelect.destroy();
+            pollingBoothTomSelect = null;
+        }
+        pollingBoothSelect.innerHTML = '<option value="">Select Polling Booth</option>';
         
         lsSelect.innerHTML = '<option value="">Select MP Constituency</option>';
         
