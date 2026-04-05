@@ -173,6 +173,11 @@
 </div>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<style>
+    .choices__list--dropdown .choices__list {
+        max-height: 400px !important;
+    }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -513,6 +518,7 @@ $(document).ready(function() {
                  const el = document.getElementById(elementId);
                  pollingBoothChoices = new Choices(el, {
                      searchEnabled: true,
+                     searchPlaceholderValue: 'Type to search',
                      itemSelectText: '',
                      shouldSort: false,
                  });
