@@ -172,43 +172,35 @@
     </div>
 </div>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 <style>
-    /* Fix Choices.js dropdown - outer wrapper must NOT clip inner content */
-    .choices__list--dropdown {
-        overflow: visible !important;
-    }
-
-    /* The actual scrollable list area */
-    .choices__list--dropdown .choices__list {
+    /* Tom Select dropdown list scroll */
+    .ts-dropdown .ts-dropdown-content {
         max-height: 320px !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
     }
-
-    /* Keep search input visible and above the list */
-    .choices__input {
-        position: relative;
-        z-index: 1;
-    }
-
-    /* Custom Scrollbar */
-    .choices__list--dropdown .choices__list::-webkit-scrollbar {
+    /* Scrollbar styling */
+    .ts-dropdown .ts-dropdown-content::-webkit-scrollbar {
         width: 8px;
     }
-    .choices__list--dropdown .choices__list::-webkit-scrollbar-track {
+    .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 4px;
     }
-    .choices__list--dropdown .choices__list::-webkit-scrollbar-thumb {
+    .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-thumb {
         background: #c1c1c1;
         border-radius: 4px;
     }
-    .choices__list--dropdown .choices__list::-webkit-scrollbar-thumb:hover {
+    .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-thumb:hover {
         background: #888;
     }
+    /* Ensure dropdown overlays content below */
+    .ts-dropdown {
+        z-index: 9999 !important;
+    }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
@@ -523,6 +515,7 @@ $(document).ready(function() {
     }
 
     function loadPollingBooths(mlaId, elementId, label) {
+        // Destroy existing Tom Select instance if any
         if (pollingBoothChoices) {
             pollingBoothChoices.destroy();
             pollingBoothChoices = null;
@@ -544,16 +537,20 @@ $(document).ready(function() {
                      options += `<option value="${item.id}">${item.name}</option>`;
                  });
                  $(`#${elementId}`).html(options);
-                 
-                 const el = document.getElementById(elementId);
-                 pollingBoothChoices = new Choices(el, {
-                     searchEnabled: true,
-                     searchPlaceholderValue: 'Type to search',
-                     itemSelectText: '',
-                     shouldSort: false,
+
+                 // Initialize Tom Select (replaces Choices.js)
+                 pollingBoothChoices = new TomSelect(`#${elementId}`, {
+                     placeholder: `Select ${label}`,
+                     searchField: 'text',
+                     maxOptions: null,
+                     plugins: [],
+                     render: {
+                         no_results: function(data, escape) {
+                             return '<div class="no-results">No results found for "' + escape(data.input) + '"</div>';
+                         }
+                     },
+                     onItemAdd: function() { checkButtonState(); }
                  });
-                 
-                 el.addEventListener('change', checkButtonState);
             }
         });
     }
