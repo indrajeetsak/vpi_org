@@ -174,26 +174,38 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 <style>
+    /* Fix Choices.js dropdown - outer wrapper must NOT clip inner content */
+    .choices__list--dropdown {
+        overflow: visible !important;
+    }
+
+    /* The actual scrollable list area */
     .choices__list--dropdown .choices__list {
-        max-height: 400px !important;
+        max-height: 320px !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
     }
-    
-    /* Custom Scrollbar for better UI */
+
+    /* Keep search input visible and above the list */
+    .choices__input {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Custom Scrollbar */
     .choices__list--dropdown .choices__list::-webkit-scrollbar {
         width: 8px;
     }
     .choices__list--dropdown .choices__list::-webkit-scrollbar-track {
-        background: #f1f1f1; 
+        background: #f1f1f1;
         border-radius: 4px;
     }
     .choices__list--dropdown .choices__list::-webkit-scrollbar-thumb {
-        background: #c1c1c1; 
+        background: #c1c1c1;
         border-radius: 4px;
     }
     .choices__list--dropdown .choices__list::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8; 
+        background: #888;
     }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
