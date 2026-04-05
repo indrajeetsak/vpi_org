@@ -184,6 +184,7 @@
                     ['title' => 'Circle Level', 'count' => $constitutedCircleCommittees ?? 0, 'count_wf' => $wfCircleCommittees ?? 0, 'color' => 'cyan', 'icon' => 'fas fa-dot-circle', 'level_id' => 4],
                     ['title' => 'Sector Level', 'count' => $constitutedSectorCommittees ?? 0, 'count_wf' => $wfSectorCommittees ?? 0, 'color' => 'violet', 'icon' => 'fas fa-vector-square', 'level_id' => 3],
                     ['title' => 'Village/Ward Level', 'count' => $constitutedVillageCommittees ?? 0, 'count_wf' => $wfVillageCommittees ?? 0, 'color' => 'emerald', 'icon' => 'fas fa-home', 'level_id' => 2],
+                    ['title' => 'Polling Booth Level', 'count' => $constitutedPollingBoothCommittees ?? 0, 'count_wf' => $wfPollingBoothCommittees ?? 0, 'color' => 'fuchsia', 'icon' => 'fas fa-person-booth', 'level_id' => 1],
                 ];
 
                 foreach ($committeeCards as $card): 
@@ -197,6 +198,7 @@
                         'cyan' => 'bg-gray-700 text-cyan-400',
                         'violet' => 'bg-gray-700 text-violet-400',
                         'emerald' => 'bg-gray-700 text-emerald-400',
+                        'fuchsia' => 'bg-gray-700 text-fuchsia-400',
                         default => 'bg-gray-700 text-gray-400'
                     };
                 ?>

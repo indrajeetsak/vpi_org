@@ -98,6 +98,10 @@ class Admin extends BaseController
         $data['constitutedVillageCommittees'] = $countConstituted(2, 'village_id', 1);
         $data['wfVillageCommittees'] = $countConstituted(2, 'village_id', 2, 1);
 
+        // 9. Polling Booth Level (ID 1)
+        $data['constitutedPollingBoothCommittees'] = $countConstituted(1, 'polling_booth_id', 1);
+        $data['wfPollingBoothCommittees'] = $countConstituted(1, 'polling_booth_id', 2, 1);
+
         // Payment Success Rate (Placeholder)
         // This would require a PaymentModel and logic to calculate the rate.
         // For example:
@@ -123,6 +127,7 @@ class Admin extends BaseController
             4  => 'Circle Level',
             3  => 'Sector Level',
             2  => 'Village/Ward Level',
+            1  => 'Polling Booth Level',
         ];
 
         if (!isset($levelLabels[$levelId])) {
@@ -263,6 +268,24 @@ class Admin extends BaseController
                 WHERE a.level_id = 2 AND a.status = 'approved' AND a.village_id IS NOT NULL
                 GROUP BY a.village_id, v.name, sc.name, b.name, d.name, s.name, a.organ_id, a.front_id
                 ORDER BY s.name ASC, d.name ASC, b.name ASC, sc.name ASC, v.name ASC, a.organ_id ASC
+            ");
+            $committees = $q->getResultArray();
+            
+        } elseif ($levelId == 1) {
+            // Polling Booth Level: polling booth, mla area, district, state
+            $q = $db->query("
+                SELECT COALESCE(pb.name, CONCAT(COALESCE(m.name, 'Unknown MLA Area'), ' Polling Booth')) AS loc1,
+                       m.name AS loc2, d.name AS loc3, s.name AS loc4, NULL AS loc5,
+                       COUNT(a.id) AS member_count, a.polling_booth_id AS location_id,
+                       a.organ_id, a.front_id
+                FROM appointments a
+                LEFT JOIN polling_booths pb ON pb.id = a.polling_booth_id
+                LEFT JOIN mla_area m ON m.id = COALESCE(pb.mla_area_id, a.mla_area_id)
+                LEFT JOIN districts d ON d.id = COALESCE(m.district_id, a.district_id)
+                LEFT JOIN states s ON s.id = d.state_id
+                WHERE a.level_id = 1 AND a.status = 'approved' AND a.polling_booth_id IS NOT NULL
+                GROUP BY a.polling_booth_id, pb.name, m.name, d.name, s.name, a.organ_id, a.front_id
+                ORDER BY s.name ASC, d.name ASC, m.name ASC, pb.name ASC, a.organ_id ASC
             ");
             $committees = $q->getResultArray();
         }

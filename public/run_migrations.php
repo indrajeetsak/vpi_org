@@ -64,7 +64,8 @@ try {
         if(!empty($history)) {
             echo "<ul>";
             foreach($history as $migration) {
-                echo "<li>Batch {$migration->batch}: " . htmlspecialchars($migration->name) . "</li>";
+                $mname = $migration->class ?? $migration->version ?? 'Unknown';
+                echo "<li>Batch {$migration->batch}: " . htmlspecialchars($mname) . "</li>";
             }
             echo "</ul>";
         }
