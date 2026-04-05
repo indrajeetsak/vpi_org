@@ -172,9 +172,13 @@
     </div>
 </div>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+    let pollingBoothChoices = null;
+
     // Enable/Disable Level based on State
     $('#state').change(function() {
         if ($(this).val()) {
@@ -484,6 +488,10 @@ $(document).ready(function() {
     }
 
     function loadPollingBooths(mlaId, elementId, label) {
+        if (pollingBoothChoices) {
+            pollingBoothChoices.destroy();
+            pollingBoothChoices = null;
+        }
         $(`#${elementId}`).html('<option value="">Loading...</option>');
         $(`#polling-location-label`).text(label);
         $.ajax({
@@ -501,6 +509,15 @@ $(document).ready(function() {
                      options += `<option value="${item.id}">${item.name}</option>`;
                  });
                  $(`#${elementId}`).html(options);
+                 
+                 const el = document.getElementById(elementId);
+                 pollingBoothChoices = new Choices(el, {
+                     searchEnabled: true,
+                     itemSelectText: '',
+                     shouldSort: false,
+                 });
+                 
+                 el.addEventListener('change', checkButtonState);
             }
         });
     }
@@ -512,6 +529,11 @@ $(document).ready(function() {
         $('#circle-location-container').hide();
         $('#village-location-container').hide();
         $('#polling-location-container').hide();
+        
+        if (pollingBoothChoices) {
+            pollingBoothChoices.destroy();
+            pollingBoothChoices = null;
+        }
         
         // Reset and clear events to prevent cascading to unwanted levels
         $('#dynamic-location').html('<option value="">Select Location</option>').off('change');

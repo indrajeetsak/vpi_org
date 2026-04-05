@@ -26,7 +26,8 @@ $routes->group('auth', function($routes) {
     $routes->get('check-email/(:segment)', 'Auth::checkEmail/$1');
     $routes->get('get-districts/(:segment)', 'Auth::getDistricts/$1');
     $routes->get('get-mla-areas/(:segment)', 'Auth::getMlaAreas/$1');
-   
+    $routes->get('get-polling-booths/(:segment)', 'Auth::getPollingBooths/$1'); 
+    
     $routes->get('get-blocks/(:segment)', 'Auth::getBlocks/$1');
     $routes->get('get-ls-hierarchy-by-mla-area/(:segment)', 'Auth::getLsHierarchyByMlaArea/$1'); // New route
    $routes->get('get-levels', 'Auth::getLevels'); // For AJAX in step 4 apply_for_post_form
