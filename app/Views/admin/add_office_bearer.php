@@ -5,6 +5,7 @@
 <?= $this->section('headerTitle') ?>Add Office Bearer<?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 <style>
     @media (min-width: 768px) {
         .md\:grid-cols-3 {
@@ -154,6 +155,7 @@
                             <option value="Block">Block</option>
                             <option value="District">District</option>
                             <option value="MLA Constituency">MLA Constituency</option>
+                            <option value="Polling Booth">Polling Booth</option>
                             <option value="MP Constituency">MP Constituency</option>
                             <option value="State">State</option>
                         </select>
@@ -245,6 +247,17 @@
                             </select>
                         </div>
 
+                        <!-- Polling Booth (Hidden initially) -->
+                        <div id="polling_booth_wrapper" class="hidden">
+                            <label for="polling_booth_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                Polling Booth <span class="text-red-500">*</span>
+                            </label>
+                            <select id="polling_booth_id" name="polling_booth_id"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="">Select Polling Booth</option>
+                            </select>
+                        </div>
+
                         <!-- 1LS (MP Constituency) -->
                         <div id="ls_wrapper" class="hidden">
                             <label for="ls_id" class="block text-sm font-medium text-gray-700 mb-2">
@@ -305,6 +318,8 @@
 <?= $this->section('scripts') ?>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Choices.js -->
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -334,7 +349,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const sectorSelect = document.getElementById('sector_id');
     const villageSelect = document.getElementById('village_id');
     const mlaAreaSelect = document.getElementById('mla_area_id');
+    const pollingBoothSelect = document.getElementById('polling_booth_id');
     const lsSelect = document.getElementById('ls_id');
+
+    // Initialize Choices.js for Polling Booth
+    const pollingBoothChoices = new Choices(pollingBoothSelect, {
+        searchEnabled: true,
+        itemSelectText: '',
+        shouldSort: false,
+    });
     
     // Wrappers
     const committeeStateWrapper = document.getElementById('committee_state_wrapper');
@@ -344,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sectorWrapper = document.getElementById('sector_wrapper');
     const villageWrapper = document.getElementById('village_wrapper');
     const mlaAreaWrapper = document.getElementById('mla_area_wrapper');
+    const pollingBoothWrapper = document.getElementById('polling_booth_wrapper');
     const lsWrapper = document.getElementById('ls_wrapper');
 
 
@@ -457,6 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sectorWrapper.classList.add('hidden');
         villageWrapper.classList.add('hidden');
         mlaAreaWrapper.classList.add('hidden');
+        pollingBoothWrapper.classList.add('hidden');
         lsWrapper.classList.add('hidden');
     }
 
@@ -468,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sectorSelect.innerHTML = '<option value="">Select Sector</option>';
         villageSelect.innerHTML = '<option value="">Select Village</option>';
         mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
+        pollingBoothSelect.innerHTML = '<option value="">Select Polling Booth</option>';
         lsSelect.innerHTML = '<option value="">Select MP Constituency</option>';
     }
     
@@ -510,6 +536,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 committeeDistrictWrapper.classList.remove('hidden');
                 mlaAreaWrapper.classList.remove('hidden');
                 break;
+            case 'Polling Booth':
+                committeeStateWrapper.classList.remove('hidden');
+                committeeDistrictWrapper.classList.remove('hidden');
+                mlaAreaWrapper.classList.remove('hidden');
+                pollingBoothWrapper.classList.remove('hidden');
+                break;
             case 'MP Constituency':
                 committeeStateWrapper.classList.remove('hidden');
                 lsWrapper.classList.remove('hidden');
@@ -541,6 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
             village_id: villageSelect.value,
             circle_id: circleSelect.value,
             mla_area_id: mlaAreaSelect.value,
+            polling_booth_id: pollingBoothSelect.value,
             ls_id: lsSelect.value,
             organ_id: organSelect.value,
             front_id: frontSelect.value
@@ -610,6 +643,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'Block': return blockSelect.value !== '';
             case 'District': return committeeDistrictSelect.value !== '';
             case 'MLA Constituency': return mlaAreaSelect.value !== '';
+            case 'Polling Booth': return pollingBoothSelect.value !== '';
             case 'MP Constituency': return lsSelect.value !== '';
             case 'State': return committeeStateSelect.value !== '';
             default: return false;
@@ -638,11 +672,18 @@ document.addEventListener('DOMContentLoaded', function() {
         sectorSelect.innerHTML = '<option value="">Select Sector</option>';
         villageSelect.innerHTML = '<option value="">Select Village</option>';
         mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
+        
+        pollingBoothChoices.clearStore();
+        pollingBoothChoices.clearChoices();
+        pollingBoothChoices.setChoices([{value: '', label: 'Select Polling Booth', selected: true, disabled: false}], 'value', 'label', true);
+        
         lsSelect.innerHTML = '<option value="">Select MP Constituency</option>';
         
         committeeDistrictWrapper.classList.add('hidden');
         lsWrapper.classList.add('hidden');
         mlaAreaWrapper.classList.add('hidden'); // Ensure MLA is hidden if state changes
+        pollingBoothWrapper.classList.add('hidden');
+        
         
         resetPostsTable();
         
@@ -696,15 +737,20 @@ document.addEventListener('DOMContentLoaded', function() {
         villageSelect.innerHTML = '<option value="">Select Village</option>';
         mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
         
+        pollingBoothChoices.clearStore();
+        pollingBoothChoices.clearChoices();
+        pollingBoothChoices.setChoices([{value: '', label: 'Select Polling Booth', selected: true, disabled: false}], 'value', 'label', true);
+        
         blockWrapper.classList.add('hidden');
         mlaAreaWrapper.classList.add('hidden');
+        pollingBoothWrapper.classList.add('hidden');
         
         resetPostsTable();
         
         if (districtId) {
             if (level === 'District') {
                 loadPostsStructure();
-            } else if (level === 'MLA Constituency') {
+            } else if (level === 'MLA Constituency' || level === 'Polling Booth') {
                 mlaAreaWrapper.classList.remove('hidden');
                 fetch(`<?= site_url('auth/get-mla-areas/') ?>${districtId}`)
                     .then(response => response.json())
@@ -823,7 +869,42 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Village Change
     villageSelect.addEventListener('change', () => { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); });
-    mlaAreaSelect.addEventListener('change', () => { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); });
+    
+    // MLA Area Change
+    mlaAreaSelect.addEventListener('change', function() {
+        const selectedMlaAreaId = this.value;
+        const level = appointedLevelSelect.value;
+        
+        pollingBoothChoices.clearStore();
+        pollingBoothChoices.clearChoices();
+        pollingBoothChoices.setChoices([{value: '', label: 'Select Polling Booth', selected: true, disabled: false}], 'value', 'label', true);
+        
+        pollingBoothWrapper.classList.add('hidden');
+        resetPostsTable();
+        
+        if (selectedMlaAreaId) {
+            if (level === 'MLA Constituency') {
+                loadPostsStructure();
+            } else if (level === 'Polling Booth') {
+                pollingBoothWrapper.classList.remove('hidden');
+                fetch(`<?= site_url('admin/locations/get_polling_booths_by_mla_area/') ?>${selectedMlaAreaId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.polling_booths) {
+                            const formattedChoices = data.polling_booths.map(booth => ({
+                                value: booth.id,
+                                label: booth.name
+                            }));
+                            pollingBoothChoices.setChoices(formattedChoices, 'value', 'label', false);
+                        }
+                    });
+            }
+        }
+        checkSubmitButton();
+    });
+
+    pollingBoothSelect.addEventListener('change', () => { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); });
+
     lsSelect.addEventListener('change', () => { resetPostsTable(); loadPostsStructure(); checkSubmitButton(); });
 
     // Expose checkSubmitButton globally since it's called by radio buttons

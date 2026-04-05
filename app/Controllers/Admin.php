@@ -25,12 +25,12 @@ class Admin extends BaseController
     {
         // Fetch stats for admin dashboard
         $data['pendingApplicationsCount'] = $this->userModel
-            ->join('appointments', 'appointments.user_id = users.id', 'inner')
+            ->join('appointments', 'appointments.user_id = master_users.id', 'inner')
             ->where('appointments.status', 'pending')
             ->countAllResults();
         $data['activeOfficeBearersCount'] = $this->userModel
-            ->join('appointments', 'appointments.user_id = users.id', 'inner')
-            ->join('admins', 'admins.mobile = users.mobile', 'left')
+            ->join('appointments', 'appointments.user_id = master_users.id', 'inner')
+            ->join('admins', 'admins.mobile = master_users.mobile', 'left')
             ->where('appointments.status', 'approved')
             ->where('admins.id IS NULL')
             ->countAllResults();
@@ -39,7 +39,7 @@ class Admin extends BaseController
         // Recently Approved Summary
         $sevenDaysAgo = date('Y-m-d H:i:s', strtotime('-7 days'));
         $recentlyApprovedCount = $this->userModel
-            ->join('appointments', 'appointments.user_id = users.id', 'inner')
+            ->join('appointments', 'appointments.user_id = master_users.id', 'inner')
             ->where('appointments.status', 'approved')
             ->where('appointments.updated_at >=', $sevenDaysAgo)
             ->countAllResults();
@@ -325,7 +325,7 @@ class Admin extends BaseController
         ');
 
         // Join Appointments
-        $builder->join('appointments', 'appointments.user_id = users.id', 'inner');
+        $builder->join('appointments', 'appointments.user_id = master_users.id', 'inner');
 
         // Join Levels & Posts
         $builder->join('levels', 'levels.id = appointments.level_id', 'left');
@@ -353,16 +353,16 @@ class Admin extends BaseController
     {
         // 1. Fetch User (Personal Info)
         $user = $this->userModel
-            ->select('users.*, 
+            ->select('master_users.*, 
                 states.name as state_name,
                 districts.name as district_name,
                 mla_area.name as mla_area_name,
                 blocks.name as block_name')
             // Join Personal Location Tables
-            ->join('states', 'states.id = users.state_id', 'left')
-            ->join('districts', 'districts.id = users.district_id', 'left')
-            ->join('mla_area', 'mla_area.id = users.mla_area_id', 'left')
-            ->join('blocks', 'blocks.id = users.block_id', 'left')
+            ->join('states', 'states.id = master_users.state_id', 'left')
+            ->join('districts', 'districts.id = master_users.district_id', 'left')
+            ->join('mla_area', 'mla_area.id = master_users.mla_area_id', 'left')
+            ->join('blocks', 'blocks.id = master_users.block_id', 'left')
             ->find($userId);
 
         if (!$user) {
@@ -483,12 +483,12 @@ class Admin extends BaseController
         $builder = $this->userModel;
 
         // Join with appointments table to get office bearer details
-        $builder->join('appointments', 'appointments.user_id = users.id', 'inner'); 
+        $builder->join('appointments', 'appointments.user_id = master_users.id', 'inner'); 
 
         // Join with the appropriate post table based on the appointment's level_id
         // and use COALESCE to pick the non-null post name.
         $builder->select("
-            users.*, 
+            master_users.*, 
             appointments.status,
             levels.name as level_name,
             COALESCE(alp.name, clp.name, glp.name, mlp.name) as post_name,
@@ -518,9 +518,9 @@ class Admin extends BaseController
         ->join('4ls l4', 'l4.id = appointments.4ls_id', 'left');
 
         // Join with admins table to exclude them from Office Bearer list
-        $builder->join('admins', 'admins.mobile = users.mobile', 'left');
+        $builder->join('admins', 'admins.mobile = master_users.mobile', 'left');
 
-        // Filter for active, non-admin users.
+        // Filter for active, non-admin master_users.
         $builder->where('appointments.status', 'approved')
                 ->where('admins.id IS NULL');
 
@@ -558,10 +558,10 @@ class Admin extends BaseController
                 if (trim($word) === '') continue;
                 
                 $builder->groupStart()
-                        ->like('users.first_name', $word)
-                        ->orLike('users.last_name', $word)
-                        ->orLike('users.email', $word)
-                        ->orLike('users.mobile', $word)
+                        ->like('master_users.first_name', $word)
+                        ->orLike('master_users.last_name', $word)
+                        ->orLike('master_users.email', $word)
+                        ->orLike('master_users.mobile', $word)
                         ->orLike('alp.name', $word)
                         ->orLike('clp.name', $word)
                         ->orLike('glp.name', $word)
@@ -781,12 +781,12 @@ class Admin extends BaseController
             
             if ($this->validate($validationRules)) {
                 $newName = $photo->getRandomName();
-                $photo->move(WRITEPATH . '../public/uploads/photos', $newName);
+                $photo->move(FCPATH . 'uploads/photos', $newName);
                 $updateData['photo'] = $newName;
                 
                 // Delete old photo if exists
-                if (!empty($user['photo']) && file_exists(WRITEPATH . '../public/uploads/photos/' . $user['photo'])) {
-                    unlink(WRITEPATH . '../public/uploads/photos/' . $user['photo']);
+                if (!empty($user['photo']) && file_exists(FCPATH . 'uploads/photos/' . $user['photo'])) {
+                    unlink(FCPATH . 'uploads/photos/' . $user['photo']);
                 }
             } else {
                 session()->setFlashdata('error', 'Invalid photo file. Please upload JPG or PNG (max 2MB).');
@@ -892,7 +892,7 @@ public function viewApplication($applicationId)
         // Get all users with their details (Personal Names + Appointment Details)
         $builder = $this->userModel;
         $builder->select('
-            users.*,
+            master_users.*,
             personal_states.name as personal_state_name,
             personal_districts.name as personal_district_name,
             personal_mla.name as personal_mla_name,
@@ -913,16 +913,16 @@ public function viewApplication($applicationId)
         ');
 
         // Joins for Personal Location
-        $builder->join('states as personal_states', 'personal_states.id = users.state_id', 'left');
-        $builder->join('districts as personal_districts', 'personal_districts.id = users.district_id', 'left');
-        $builder->join('mla_area as personal_mla', 'personal_mla.id = users.mla_area_id', 'left');
-        $builder->join('blocks as personal_blocks', 'personal_blocks.id = users.block_id', 'left');
-        $builder->join('sectors as personal_sector', 'personal_sector.id = users.sector_id', 'left');
+        $builder->join('states as personal_states', 'personal_states.id = master_users.state_id', 'left');
+        $builder->join('districts as personal_districts', 'personal_districts.id = master_users.district_id', 'left');
+        $builder->join('mla_area as personal_mla', 'personal_mla.id = master_users.mla_area_id', 'left');
+        $builder->join('blocks as personal_blocks', 'personal_blocks.id = master_users.block_id', 'left');
+        $builder->join('sectors as personal_sector', 'personal_sector.id = master_users.sector_id', 'left');
 
         // Join Appointments (Latest one per user)
         // Note: For large datasets, a subquery for 'latest' might be better, 
         // but here we merge with the latest appointment found.
-        $builder->join('appointments', 'appointments.user_id = users.id', 'left');
+        $builder->join('appointments', 'appointments.user_id = master_users.id', 'left');
 
         // Joins for Appointment Location
         $builder->join('states as app_states', 'app_states.id = appointments.state_id', 'left');
@@ -1056,7 +1056,7 @@ public function viewApplication($applicationId)
             'mobile' => 'required|regex_match[/^[0-9]{10}$/]',
             'state_id' => 'required|is_natural_no_zero',
             'address' => 'permit_empty|min_length[10]',
-            'appointed_level' => 'required|in_list[Village,Sector,Circle,Block,District,MLA Constituency,MP Constituency,State]',
+            'appointed_level' => 'required|in_list[Village,Sector,Circle,Block,District,MLA Constituency,Polling Booth,MP Constituency,State]',
             'post_id' => 'required|is_natural_no_zero',
             'organ_id' => 'required|is_natural_no_zero', // Made required
         ];
@@ -1100,6 +1100,7 @@ public function viewApplication($applicationId)
             'Block' => 5,
             'District' => 16,
             'MLA Constituency' => 6,
+            'Polling Booth' => 1,
             'MP Constituency' => 7,
             'State' => 11,
         ];
@@ -1181,6 +1182,11 @@ public function viewApplication($applicationId)
              $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
              $appointmentData['district_id'] = $this->request->getPost('committee_district_id');
              $appointmentData['mla_area_id'] = $this->request->getPost('mla_area_id') ?: null;
+        } elseif ($appointedLevel === 'Polling Booth') {
+             $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
+             $appointmentData['district_id'] = $this->request->getPost('committee_district_id');
+             $appointmentData['mla_area_id'] = $this->request->getPost('mla_area_id');
+             $appointmentData['polling_booth_id'] = $this->request->getPost('polling_booth_id') ?: null;
         } elseif ($appointedLevel === 'MP Constituency') {
              $appointmentData['state_id'] = $this->request->getPost('committee_state_id');
              $appointmentData['ls_id'] = $this->request->getPost('ls_id') ?: null;
@@ -1235,6 +1241,7 @@ public function viewApplication($applicationId)
             'Block' => 5,
             'District' => 16,
             'MLA Constituency' => 6,
+            'Polling Booth' => 1,
             'MP Constituency' => 7,
             'State' => 11,
         ];
@@ -1271,6 +1278,7 @@ public function viewApplication($applicationId)
             'village_id' => $this->request->getVar('village_id'), // NEW
             'circle_id' => $this->request->getVar('circle_id'),   // NEW
             'mla_area_id' => $this->request->getVar('mla_area_id'),
+            'polling_booth_id' => $this->request->getVar('polling_booth_id'), // NEW
             'ls_id' => $this->request->getVar('ls_id'),
         ];
 
@@ -1282,6 +1290,7 @@ public function viewApplication($applicationId)
             'Block' => ['id' => 5, 'groupBy' => ['state_id', 'district_id', 'block_id']],
             'District' => ['id' => 16, 'groupBy' => ['state_id', 'district_id']],
             'MLA Constituency' => ['id' => 6, 'groupBy' => ['state_id', 'district_id', 'mla_area_id']],
+            'Polling Booth' => ['id' => 1, 'groupBy' => ['state_id', 'district_id', 'mla_area_id', 'polling_booth_id']],
             'MP Constituency' => ['id' => 7, 'groupBy' => ['state_id', 'ls_id']], // Assuming usage of 1LS ID
             'State' => ['id' => 11, 'groupBy' => ['state_id']],
             // Note: Governing Level 11-15, Managerial Level 16-17 logic handled by PostModel
@@ -1301,8 +1310,8 @@ public function viewApplication($applicationId)
         // Fetch existing appointments for this location
         $appointmentModel = new AppointmentModel();
         $builder = $appointmentModel->builder();
-        $builder->select('appointments.post_id, users.first_name, users.last_name, users.mobile, users.photo');
-        $builder->join('users', 'users.id = appointments.user_id');
+        $builder->select('appointments.post_id, master_users.first_name, master_users.last_name, master_users.mobile, master_users.photo');
+        $builder->join('master_users', 'master_users.id = appointments.user_id');
         $builder->where('appointments.level_id', $levelId);
         $builder->where('appointments.status', 'approved');
 
@@ -1390,6 +1399,12 @@ public function viewApplication($applicationId)
         $data['all_states'] = $this->stateModel->orderBy('name', 'ASC')->findAll();
         $data['recentUsers'] = $this->userModel->orderBy('created_at', 'DESC')->limit(10)->findAll();
         return view('admin/manage_location', $data);
+    }
+
+    public function managePollingBooths()
+    {
+        $data['all_states'] = $this->stateModel->orderBy('name', 'ASC')->findAll();
+        return view('admin/manage_polling_booths', $data);
     }
 
     public function manageConstituencies()
@@ -1829,13 +1844,13 @@ public function viewApplication($applicationId)
         // fetch the data
         $builder = $this->userModel;
         // Join Appointments
-        $builder->join('appointments', 'appointments.user_id = users.id', 'inner');
+        $builder->join('appointments', 'appointments.user_id = master_users.id', 'inner');
         // Join admins to exclude them
-        $builder->join('admins', 'admins.mobile = users.mobile', 'left');
+        $builder->join('admins', 'admins.mobile = master_users.mobile', 'left');
 
         $builder->select('
-            users.id, users.first_name, users.last_name, users.email, users.mobile, users.alternate_mobile,
-            users.date_of_birth, users.gender, users.father_name, users.mother_name, users.aadhaar_number,
+            master_users.id, master_users.first_name, master_users.last_name, master_users.email, master_users.mobile, master_users.alternate_mobile,
+            master_users.date_of_birth, master_users.gender, master_users.father_name, master_users.mother_name, master_users.aadhaar_number,
             
             app_states.name as app_state_name,
             app_districts.name as app_district_name,
@@ -1849,12 +1864,12 @@ public function viewApplication($applicationId)
  
             personal_states.name as personal_state_name,
             personal_districts.name as personal_district_name,
-            users.address_line1, users.address_line2, users.pin_code,
+            master_users.address_line1, master_users.address_line2, master_users.pin_code,
             
             organs.name as organ_name,
             levels.name as level_name,
             COALESCE(alp.name, clp.name, glp.name, mlp.name) as post_name,
-            appointments.status, users.added_by_name, appointments.created_at, appointments.updated_at
+            appointments.status, master_users.added_by_name, appointments.created_at, appointments.updated_at
         ');
 
         // Joins for APPOINTMENT locations (from appointments table)
@@ -1870,8 +1885,8 @@ public function viewApplication($applicationId)
         $builder->join('4ls as app_4ls', 'app_4ls.id = appointments.4ls_id', 'left');
 
         // Joins for PERSONAL locations (from users table)
-        $builder->join('states as personal_states', 'personal_states.id = users.state_id', 'left');
-        $builder->join('districts as personal_districts', 'personal_districts.id = users.district_id', 'left');
+        $builder->join('states as personal_states', 'personal_states.id = master_users.state_id', 'left');
+        $builder->join('districts as personal_districts', 'personal_districts.id = master_users.district_id', 'left');
 
         $builder->join('organs', 'organs.id = appointments.organ_id', 'left');
         $builder->join('levels', 'levels.id = appointments.level_id', 'left');

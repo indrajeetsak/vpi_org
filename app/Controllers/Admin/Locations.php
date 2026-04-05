@@ -469,4 +469,83 @@ class Locations extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'No circles found.']);
         }
     }
+
+    public function getPollingBoothsByMlaArea($mlaAreaId)
+    {
+        $boothModel = new \App\Models\PollingBoothModel();
+        $booths = $boothModel->getPollingBoothsByMlaArea($mlaAreaId);
+
+        if (!empty($booths)) {
+            return $this->response->setJSON(['success' => true, 'polling_booths' => $booths]);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'No polling booths found for this MLA area.']);
+        }
+    }
+
+    public function addPollingBooths()
+    {
+        $mlaAreaId = $this->request->getJsonVar('mla_area_id');
+        $boothNames = $this->request->getJsonVar('names');
+
+        if (empty($mlaAreaId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'MLA Area ID is required.']);
+        }
+
+        $boothModel = new \App\Models\PollingBoothModel();
+
+        if (empty($boothNames)) {
+            $boothModel->where('mla_area_id', $mlaAreaId)->delete();
+            return $this->response->setJSON(['success' => true, 'message' => 'All polling booths removed.']);
+        }
+
+        $sanitizedBoothNames = array_map('trim', $boothNames);
+        $sanitizedBoothNames = array_filter($sanitizedBoothNames);
+
+        if (empty($sanitizedBoothNames)) {
+            $boothModel->where('mla_area_id', $mlaAreaId)->delete();
+            return $this->response->setJSON(['success' => true, 'message' => 'All polling booths removed.']);
+        }
+
+        $existingBooths = $boothModel->where('mla_area_id', $mlaAreaId)->findAll();
+        $existingBoothNames = array_map(function($b) { return $b['name']; }, $existingBooths);
+
+        $boothsToAdd = array_diff($sanitizedBoothNames, $existingBoothNames);
+        $boothsToDelete = array_diff($existingBoothNames, $sanitizedBoothNames);
+
+        $addedCount = 0;
+        $deletedCount = 0;
+
+        if (!empty($boothsToAdd)) {
+            $dataToInsert = [];
+            foreach ($boothsToAdd as $name) {
+                $dataToInsert[] = [
+                    'mla_area_id' => $mlaAreaId,
+                    'name' => $name,
+                    'added_by' => session()->get('admin_id'),
+                    'added_by_name' => session()->get('name'),
+                ];
+            }
+            if ($boothModel->insertBatch($dataToInsert)) {
+                $addedCount = count($dataToInsert);
+            }
+        }
+
+        if (!empty($boothsToDelete)) {
+            $boothModel->where('mla_area_id', $mlaAreaId)->whereIn('name', $boothsToDelete)->delete();
+            $deletedCount = count($boothsToDelete);
+        }
+
+        $messages = [];
+        if ($addedCount > 0) {
+            $messages[] = "$addedCount polling booth(s) added";
+        }
+        if ($deletedCount > 0) {
+            $messages[] = "$deletedCount polling booth(s) deleted";
+        }
+        if (empty($messages)) {
+            $messages[] = "No changes made";
+        }
+
+        return $this->response->setJSON(['success' => true, 'message' => implode(', ', $messages) . '.']);
+    }
 }

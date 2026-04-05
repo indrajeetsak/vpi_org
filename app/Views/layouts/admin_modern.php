@@ -36,6 +36,9 @@
                 <a href="<?= site_url('admin/manage-constituencies') ?>" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 <?= (service('router')->controllerName() == 'App\Controllers\Admin' && service('router')->methodName() == 'manageConstituencies') ? 'bg-blue-600' : '' ?>">
                     <i class="fas fa-landmark mr-3"></i>Manage Constituencies
                 </a>
+                <a href="<?= site_url('admin/manage-polling-booths') ?>" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 <?= (service('router')->controllerName() == 'App\Controllers\Admin' && service('router')->methodName() == 'managePollingBooths') ? 'bg-blue-600' : '' ?>">
+                    <i class="fas fa-person-booth mr-3"></i>Manage Polling Booths
+                </a>
                 <a href="<?= site_url('admin/manage-circles') ?>" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 <?= (service('router')->controllerName() == 'App\Controllers\Admin\Circles') ? 'bg-blue-600' : '' ?>">
                     <i class="fas fa-circle-notch mr-3"></i>Manage Circles
                 </a>

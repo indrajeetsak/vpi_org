@@ -115,10 +115,15 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     // Villages routes
     $routes->get('locations/get_villages_by_sector/(:num)', 'Admin\Locations::getVillagesBySector/$1');
     $routes->post('locations/add_villages', 'Admin\Locations::addVillages');
+    
+    // Polling Booths routes
+    $routes->get('locations/get_polling_booths_by_mla_area/(:num)', 'Admin\Locations::getPollingBoothsByMlaArea/$1');
+    $routes->post('locations/add_polling_booths', 'Admin\Locations::addPollingBooths');
+
     $routes->get('logout', 'Auth::logout'); // Admin logout
 
     $routes->get('manage-location', 'Admin::manageLocation');
-    $routes->get('manage-location', 'Admin::manageLocation');
+    $routes->get('manage-polling-booths', 'Admin::managePollingBooths');
     $routes->get('manage-constituencies', 'Admin::manageConstituencies');
 
     // Admin Management Routes

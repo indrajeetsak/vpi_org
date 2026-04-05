@@ -14,7 +14,7 @@ class AppointmentModel extends Model
         'user_id', 'level_id', 'post_id', 'organ_id', 'front_id',
         'state_id', 'district_id', 'block_id', 'sector_id',
         'village_id', 'circle_id',
-        'mla_area_id', 'ls_id', '2ls_id', '3ls_id', '4ls_id',
+        'mla_area_id', 'polling_booth_id', 'ls_id', '2ls_id', '3ls_id', '4ls_id',
         'status', 'added_by', 'added_by_name', 'edited_by', 'edited_by_name'
     ];
 

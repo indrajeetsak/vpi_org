@@ -343,9 +343,9 @@ class Auth extends BaseController
             'date_of_birth' => 'required|valid_date',
             'gender'     => 'required|in_list[male,female,other]',
             'photo'      => 'uploaded[photo]|max_size[photo,2048]|mime_in[photo,image/jpg,image/jpeg,image/png]',
-            'mobile'     => 'required|min_length[10]|is_unique[users.mobile]',
+            'mobile'     => 'required|min_length[10]|is_unique[master_users.mobile]',
             'alternate_mobile' => 'permit_empty|min_length[10]',
-            'email'      => 'required|valid_email|is_unique[users.email]'
+            'email'      => 'required|valid_email|is_unique[master_users.email]'
         ];
 
         if (!$this->validate($rules)) {
@@ -393,7 +393,7 @@ class Auth extends BaseController
            'block_id'    => 'required|numeric|is_not_unique[blocks.id]',    // Assuming blocks table
            'father_name' => 'required',
            'mother_name' => 'required',
-           'aadhaar_number' => 'required|numeric|exact_length[12]|is_unique[users.aadhaar_number]'
+           'aadhaar_number' => 'required|numeric|exact_length[12]|is_unique[master_users.aadhaar_number]'
         ];
 
         if (!$this->validate($rules)) {
