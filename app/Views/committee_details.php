@@ -14,7 +14,7 @@
     </div>
 
     <!-- Filters Section -->
-    <div class="bg-white shadow-xl rounded-2xl overflow-hidden mb-12 border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+    <div class="bg-white shadow-xl rounded-2xl overflow-visible mb-12 border border-gray-100 transition-all duration-300 hover:shadow-2xl">
         <div class="p-6 sm:p-10">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-5">
                 
