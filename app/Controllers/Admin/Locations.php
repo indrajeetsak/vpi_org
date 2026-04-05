@@ -484,38 +484,38 @@ class Locations extends BaseController
 
     public function addPollingBooths()
     {
-        $mlaAreaId = $this->request->getJsonVar('mla_area_id');
-        $boothNames = $this->request->getJsonVar('names');
-
-        if (empty($mlaAreaId)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'MLA Area ID is required.']);
-        }
-
-        $boothModel = new \App\Models\PollingBoothModel();
-
-        if (empty($boothNames)) {
-            $boothModel->where('mla_area_id', $mlaAreaId)->delete();
-            return $this->response->setJSON(['success' => true, 'message' => 'All polling booths removed.']);
-        }
-
-        $sanitizedBoothNames = array_map('trim', $boothNames);
-        $sanitizedBoothNames = array_filter($sanitizedBoothNames);
-
-        if (empty($sanitizedBoothNames)) {
-            $boothModel->where('mla_area_id', $mlaAreaId)->delete();
-            return $this->response->setJSON(['success' => true, 'message' => 'All polling booths removed.']);
-        }
-
-        $existingBooths = $boothModel->where('mla_area_id', $mlaAreaId)->findAll();
-        $existingBoothNames = array_map(function($b) { return $b['name']; }, $existingBooths);
-
-        $boothsToAdd = array_diff($sanitizedBoothNames, $existingBoothNames);
-        $boothsToDelete = array_diff($existingBoothNames, $sanitizedBoothNames);
-
-        $addedCount = 0;
-        $deletedCount = 0;
-
         try {
+            $mlaAreaId = $this->request->getPost('mla_area_id') ?? $this->request->getJsonVar('mla_area_id');
+            $boothNames = $this->request->getPost('names') ?? $this->request->getJsonVar('names');
+
+            if (empty($mlaAreaId)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'MLA Area ID is required.']);
+            }
+
+            $boothModel = new \App\Models\PollingBoothModel();
+
+            if (empty($boothNames)) {
+                $boothModel->where('mla_area_id', $mlaAreaId)->delete();
+                return $this->response->setJSON(['success' => true, 'message' => 'All polling booths removed.']);
+            }
+
+            $sanitizedBoothNames = array_map('trim', $boothNames);
+            $sanitizedBoothNames = array_filter($sanitizedBoothNames);
+
+            if (empty($sanitizedBoothNames)) {
+                $boothModel->where('mla_area_id', $mlaAreaId)->delete();
+                return $this->response->setJSON(['success' => true, 'message' => 'All polling booths removed.']);
+            }
+
+            $existingBooths = $boothModel->where('mla_area_id', $mlaAreaId)->findAll();
+            $existingBoothNames = array_map(function($b) { return $b['name']; }, $existingBooths);
+
+            $boothsToAdd = array_diff($sanitizedBoothNames, $existingBoothNames);
+            $boothsToDelete = array_diff($existingBoothNames, $sanitizedBoothNames);
+
+            $addedCount = 0;
+            $deletedCount = 0;
+
             if (!empty($boothsToAdd)) {
                 $dataToInsert = [];
                 foreach ($boothsToAdd as $name) {
@@ -535,21 +535,24 @@ class Locations extends BaseController
                 $boothModel->where('mla_area_id', $mlaAreaId)->whereIn('name', $boothsToDelete)->delete();
                 $deletedCount = count($boothsToDelete);
             }
-        } catch (\Exception $e) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
-        }
 
-        $messages = [];
-        if ($addedCount > 0) {
-            $messages[] = "$addedCount polling booth(s) added";
-        }
-        if ($deletedCount > 0) {
-            $messages[] = "$deletedCount polling booth(s) deleted";
-        }
-        if (empty($messages)) {
-            $messages[] = "No changes made";
-        }
+            $messages = [];
+            if ($addedCount > 0) {
+                $messages[] = "$addedCount polling booth(s) added";
+            }
+            if ($deletedCount > 0) {
+                $messages[] = "$deletedCount polling booth(s) deleted";
+            }
+            if (empty($messages)) {
+                $messages[] = "No changes made";
+            }
 
-        return $this->response->setJSON(['success' => true, 'message' => implode(', ', $messages) . '.']);
+            return $this->response->setJSON(['success' => true, 'message' => implode(', ', $messages) . '.']);
+        } catch (\Throwable $e) {
+            return $this->response->setJSON([
+                'success' => false, 
+                'message' => 'Server Error: ' . $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine()
+            ]);
+        }
     }
 }

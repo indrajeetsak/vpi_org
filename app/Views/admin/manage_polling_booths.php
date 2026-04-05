@@ -192,14 +192,19 @@
                 if (!confirm("You are about to delete all polling booths for this MLA Area. Continue?")) return;
             }
 
+            const formData = new FormData();
+            formData.append('mla_area_id', mlaAreaId);
+            dataItems.forEach(item => {
+                formData.append('names[]', item);
+            });
+
             fetch(`<?= site_url('admin/locations/add_polling_booths') ?>`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': csrfTokenValue
                 },
-                body: JSON.stringify({ mla_area_id: mlaAreaId, names: dataItems })
+                body: formData
             })
             .then(async r => {
                 const isJson = r.headers.get('content-type')?.includes('application/json');
