@@ -176,6 +176,24 @@
 <style>
     .choices__list--dropdown .choices__list {
         max-height: 400px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Custom Scrollbar for better UI */
+    .choices__list--dropdown .choices__list::-webkit-scrollbar {
+        width: 8px;
+    }
+    .choices__list--dropdown .choices__list::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+        border-radius: 4px;
+    }
+    .choices__list--dropdown .choices__list::-webkit-scrollbar-thumb {
+        background: #c1c1c1; 
+        border-radius: 4px;
+    }
+    .choices__list--dropdown .choices__list::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8; 
     }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
