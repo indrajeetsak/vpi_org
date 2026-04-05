@@ -80,8 +80,8 @@ class Dashboard extends BaseController
     {
         $userId = session()->get('user_id');
         $user = $this->userModel
-            ->select('master_users.*, appointments.organ_id, appointments.level_id, appointments.post_id, appointments.status as appointment_status')
-            ->join('appointments', 'appointments.user_id = master_users.id', 'left')
+            ->select('users.*, appointments.organ_id, appointments.level_id, appointments.post_id, appointments.status as appointment_status')
+            ->join('appointments', 'appointments.user_id = users.id', 'left')
             ->find($userId);
 
         if (!$user) {

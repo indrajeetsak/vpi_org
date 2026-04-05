@@ -79,8 +79,8 @@ class CommitteeController extends BaseController
 
         // 3. Fetch Appointments matching filters
         $builder = $db->table('appointments');
-        $builder->select('master_users.first_name, master_users.last_name, master_users.photo, appointments.post_id');
-        $builder->join('master_users', 'master_users.id = appointments.user_id');
+        $builder->select('users.first_name, users.last_name, users.photo, appointments.post_id');
+        $builder->join('users', 'users.id = appointments.user_id');
         $builder->where('appointments.level_id', $levelId);
         $builder->where('appointments.status', 'approved');
         

@@ -9,7 +9,7 @@ class SyncUsers extends BaseCommand
 {
     protected $group       = 'Database';
     protected $name        = 'sync:users';
-    protected $description = 'Migrate and merge data from vpi_ob.users and vpi-members.users into master_users';
+    protected $description = 'Migrate and merge data from vpi_ob.users and vpi-members.users into users';
 
     public function run(array $params)
     {
@@ -24,7 +24,7 @@ class SyncUsers extends BaseCommand
             'DBCollat' => 'utf8mb4_general_ci'
         ]);
 
-        $masterBuilder = $db1->table('master_users');
+        $masterBuilder = $db1->table('users');
         $obUsersBuilder = $db1->table('users');
         $donorsBuilder = $db2->table('users');
 
@@ -45,7 +45,7 @@ class SyncUsers extends BaseCommand
             $data['mobile'] = empty(trim((string)$data['mobile'])) ? null : trim($data['mobile']);
             $data['aadhaar_number'] = empty(trim((string)$data['aadhaar_number'])) ? null : trim($data['aadhaar_number']);
 
-            // Insert into master_users, preserving ID to maintain relations
+            // Insert into users, preserving ID to maintain relations
             try {
                 $masterBuilder->insert($data);
                 $insertedCount++;
@@ -54,7 +54,7 @@ class SyncUsers extends BaseCommand
             }
         }
         
-        CLI::write("Inserted $insertedCount Office Bearers into master_users.");
+        CLI::write("Inserted $insertedCount Office Bearers into users.");
 
         CLI::write("Migrating Donors from vpi-members.users...", 'green');
         
@@ -103,10 +103,10 @@ class SyncUsers extends BaseCommand
                 $data['date_of_birth'] = null;
             }
 
-            // Find matching user in master_users by email or mobile
+            // Find matching user in users by email or mobile
             $existingUser = null;
             if ($email || $mobile) {
-                $query = $db1->table('master_users')->groupStart();
+                $query = $db1->table('users')->groupStart();
                 if ($email) {
                     $query->orWhere('email', $email);
                 }
@@ -133,7 +133,7 @@ class SyncUsers extends BaseCommand
 
                 if (!empty($updateData)) {
                     try {
-                        $db1->table('master_users')->where('id', $existingUser['id'])->update($updateData);
+                        $db1->table('users')->where('id', $existingUser['id'])->update($updateData);
                         $donorUpdatedCount++;
                     } catch (\Exception $e) {
                          CLI::write("Error updating Donor {$data['first_name']}: " . $e->getMessage(), 'red');
@@ -142,7 +142,7 @@ class SyncUsers extends BaseCommand
             } else {
                 // Insert new (let auto-increment assign ID)
                 try {
-                    $db1->table('master_users')->insert($data);
+                    $db1->table('users')->insert($data);
                     $donorInsertedCount++;
                 } catch (\Exception $e) {
                     CLI::write("Error inserting Donor {$data['first_name']}: " . $e->getMessage(), 'red');

@@ -190,11 +190,11 @@ class CreateMasterUsersTable extends Migration
         $this->forge->addKey('mla_area_id');
         $this->forge->addKey('block_id');
         
-        $this->forge->createTable('master_users');
+        $this->forge->createTable('users');
     }
 
     public function down()
     {
-        $this->forge->dropTable('master_users', true);
+        $this->forge->dropTable('users', true);
     }
 }
