@@ -13,25 +13,50 @@ chdir(FCPATH);
 // Load the paths config file
 $pathsPath = realpath(FCPATH . '../app/Config/Paths.php');
 if (!$pathsPath) {
-    die("Error: Could not find app/Config/Paths.php. Make sure this script is in your 'public' directory.");
+    die("Error: Could not find app/Config/Paths.php.");
 }
 require $pathsPath;
 
 $paths = new Config\Paths();
-$bootstrapPath = rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'bootstrap.php';
-if (!file_exists($bootstrapPath)) {
-    die("Error: Could not find system bootstrap file at {$bootstrapPath}");
+$bootPath = rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'Boot.php';
+if (!file_exists($bootPath)) {
+    die("Error: Could not find system Boot file at {$bootPath}");
 }
-require $bootstrapPath;
+require $bootPath;
 
-// Instantiate the migrations service
-$migrate = \Config\Services::migrations();
+// Create a custom boot sequence to initialize the framework programmatically
+class WebMigrationBoot extends \CodeIgniter\Boot {
+    public static function bootCustom($paths) {
+        static::definePathConstants($paths);
+        if (! defined('APP_NAMESPACE')) {
+            static::loadConstants();
+        }
+        static::checkMissingExtensions();
+
+        static::loadDotEnv($paths);
+        static::defineEnvironment();
+        static::loadEnvironmentBootstrap($paths);
+
+        static::loadCommonFunctions();
+        static::loadAutoloader();
+        static::setExceptionHandler();
+        static::initializeKint();
+        static::autoloadHelpers();
+        
+        static::initializeCodeIgniter();
+    }
+}
 
 echo "<html><body>";
 echo "<h2>CodeIgniter 4 Migration Execution</h2>";
 
 try {
-    // Run the migrations to the latest state
+    // Bootstrap the framework safely without running the Router
+    WebMigrationBoot::bootCustom($paths);
+
+    // Instantiate and run the migrations service
+    $migrate = \Config\Services::migrations();
+    
     if ($migrate->latest()) {
         echo "<h3 style='color: green;'>Migrations ran successfully!</h3>";
         
