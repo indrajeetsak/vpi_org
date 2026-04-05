@@ -88,21 +88,21 @@
 
         <!-- Primary Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <!-- New Applications -->
+            <!-- Total Committee Formed -->
             <div class="bg-amber-800 rounded-2xl shadow-sm border border-gray-700 p-6 hover:shadow-md transition-shadow duration-300 relative overflow-hidden group">
                 <div class="absolute right-0 top-0 h-full w-1 bg-orange-500"></div>
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-sm font-medium text-gray-300 uppercase tracking-wide">New Applications</p>
-                        <h3 class="text-3xl font-bold text-white mt-2"><?= $pendingApplicationsCount ?? '0' ?></h3>
+                        <p class="text-sm font-medium text-gray-300 uppercase tracking-wide">Total Committee Formed</p>
+                        <h3 class="text-3xl font-bold text-white mt-2"><?= $totalCommitteesCount ?? '0' ?></h3>
                     </div>
                     <div class="p-3 bg-gray-700 rounded-xl text-orange-400 group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.125-1.273-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.125-1.273.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     </div>
                 </div>
                 <div class="mt-4 flex items-center">
-                    <a href="<?= site_url('admin/usersRequest') ?>" class="text-sm font-medium text-orange-400 hover:text-orange-300 flex items-center group-hover:underline">
-                        Review Requests <i class="fas fa-arrow-right ml-1 text-xs transition-transform group-hover:translate-x-1"></i>
+                    <a href="#committees-section" class="text-sm font-medium text-orange-400 hover:text-orange-300 flex items-center group-hover:underline">
+                        View Committees <i class="fas fa-arrow-down ml-1 text-xs transition-transform group-hover:translate-y-1"></i>
                     </a>
                 </div>
             </div>
@@ -166,7 +166,7 @@
         </div>
 
         <!-- Section: Committee Constitution Stats -->
-        <div>
+        <div id="committees-section">
             <div class="flex items-center mb-6">
                 <div class="h-8 w-1 bg-indigo-600 rounded-full mr-3"></div>
                 <h3 class="text-xl font-bold text-gray-800">Constituted Committees</h3>

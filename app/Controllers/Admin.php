@@ -102,6 +102,18 @@ class Admin extends BaseController
         $data['constitutedPollingBoothCommittees'] = $countConstituted(1, 'polling_booth_id', 1);
         $data['wfPollingBoothCommittees'] = $countConstituted(1, 'polling_booth_id', 2, 1);
 
+        // Calculate Total Committees Formed
+        $data['totalCommitteesCount'] = 
+            $data['constitutedStateCommittees'] + $data['wfStateCommittees'] +
+            $data['constitutedDistrictCommittees'] + $data['wfDistrictCommittees'] +
+            $data['constitutedMlaCommittees'] + $data['wfMlaCommittees'] +
+            $data['constitutedBlockCommittees'] + $data['wfBlockCommittees'] +
+            $data['constitutedMpCommittees'] + $data['wfMpCommittees'] +
+            $data['constitutedCircleCommittees'] + $data['wfCircleCommittees'] +
+            $data['constitutedSectorCommittees'] + $data['wfSectorCommittees'] +
+            $data['constitutedVillageCommittees'] + $data['wfVillageCommittees'] +
+            $data['constitutedPollingBoothCommittees'] + $data['wfPollingBoothCommittees'];
+
         // Payment Success Rate (Placeholder)
         // This would require a PaymentModel and logic to calculate the rate.
         // For example:
