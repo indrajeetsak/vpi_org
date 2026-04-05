@@ -57,7 +57,7 @@ class CreatePollingBoothsTable extends Migration
         ]);
 
         $this->forge->addKey('id', true);
-        $this->forge->addForeignKey('mla_area_id', 'mla_areas', 'id', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('mla_area_id', 'mla_area', 'id', 'CASCADE', 'CASCADE');
         $this->forge->createTable('polling_booths');
     }
 
