@@ -515,24 +515,28 @@ class Locations extends BaseController
         $addedCount = 0;
         $deletedCount = 0;
 
-        if (!empty($boothsToAdd)) {
-            $dataToInsert = [];
-            foreach ($boothsToAdd as $name) {
-                $dataToInsert[] = [
-                    'mla_area_id' => $mlaAreaId,
-                    'name' => $name,
-                    'added_by' => session()->get('admin_id'),
-                    'added_by_name' => session()->get('name'),
-                ];
+        try {
+            if (!empty($boothsToAdd)) {
+                $dataToInsert = [];
+                foreach ($boothsToAdd as $name) {
+                    $dataToInsert[] = [
+                        'mla_area_id' => $mlaAreaId,
+                        'name' => $name,
+                        'added_by' => session()->get('admin_id') ?: null,
+                        'added_by_name' => session()->get('name') ?: null,
+                    ];
+                }
+                if ($boothModel->insertBatch($dataToInsert)) {
+                    $addedCount = count($dataToInsert);
+                }
             }
-            if ($boothModel->insertBatch($dataToInsert)) {
-                $addedCount = count($dataToInsert);
-            }
-        }
 
-        if (!empty($boothsToDelete)) {
-            $boothModel->where('mla_area_id', $mlaAreaId)->whereIn('name', $boothsToDelete)->delete();
-            $deletedCount = count($boothsToDelete);
+            if (!empty($boothsToDelete)) {
+                $boothModel->where('mla_area_id', $mlaAreaId)->whereIn('name', $boothsToDelete)->delete();
+                $deletedCount = count($boothsToDelete);
+            }
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
         }
 
         $messages = [];

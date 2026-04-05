@@ -201,18 +201,27 @@
                 },
                 body: JSON.stringify({ mla_area_id: mlaAreaId, names: dataItems })
             })
-            .then(r => r.json())
+            .then(async r => {
+                const isJson = r.headers.get('content-type')?.includes('application/json');
+                const data = isJson ? await r.json() : null;
+                
+                if (!r.ok) {
+                    const errorMsg = data?.message || data?.detail || `HTTP Error ${r.status} (${r.statusText})`;
+                    throw new Error(errorMsg);
+                }
+                return data;
+            })
             .then(data => {
-                if (data.success) {
+                if (data && data.success) {
                     // Update text area with sanitized input
                     dataTextArea.value = dataItems.join('\n');
                     showFeedback(data.message || 'Polling booths updated successfully.', 'success');
                 } else {
-                    showFeedback(data.message || 'Failed to sync polling booths.', 'error');
+                    showFeedback(data?.message || 'Failed to sync polling booths.', 'error');
                 }
             }).catch(e => {
                 console.error(e);
-                showFeedback('An error occurred during save.', 'error');
+                showFeedback(`Error: ${e.message}`, 'error');
             });
         });
     });
