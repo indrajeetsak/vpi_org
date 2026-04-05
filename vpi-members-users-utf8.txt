@@ -1,0 +1,18 @@
+﻿Field	Type	Null	Key	Default	Extra
+id	int(11)	NO	PRI	NULL	auto_increment
+member_id	int(11)	NO	UNI	NULL	
+type	enum('1','2','3','4','5')	YES		1	
+status	enum('0','1')	YES		0	
+referral_code	varchar(255)	YES		NULL	
+first_name	varchar(20)	YES	MUL	NULL	
+last_name	varchar(20)	YES		NULL	
+gender	enum('Male','Female','Other')	NO		Male	
+father_name	varchar(50)	YES		NULL	
+mobile	varchar(15)	YES		NULL	
+email	varchar(50)	YES		NULL	
+pm_no	varchar(50)	YES		NULL	
+date_of_birth	varchar(20)	YES		NULL	
+password	varchar(255)	YES		NULL	
+company_id	int(11)	YES		NULL	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()

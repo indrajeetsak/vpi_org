@@ -1,0 +1,27 @@
+﻿Field	Type	Null	Key	Default	Extra
+id	int(11) unsigned	NO	PRI	NULL	auto_increment
+first_name	varchar(100)	NO		NULL	
+last_name	varchar(100)	YES		NULL	
+email	varchar(100)	NO	UNI	NULL	
+mobile	varchar(15)	NO	UNI	NULL	
+alternate_mobile	varchar(15)	YES		NULL	
+password	varchar(255)	NO		NULL	
+date_of_birth	date	NO		NULL	
+gender	enum('male','female','other')	NO		NULL	
+photo	varchar(255)	YES		NULL	
+father_name	varchar(100)	NO		NULL	
+mother_name	varchar(100)	NO		NULL	
+aadhaar_number	varchar(12)	NO	UNI	NULL	
+state_id	int(11) unsigned	YES	MUL	NULL	
+district_id	int(11) unsigned	YES	MUL	NULL	
+mla_area_id	int(11) unsigned	YES	MUL	NULL	
+block_id	int(11) unsigned	YES	MUL	NULL	
+address_line1	varchar(255)	NO		NULL	
+address_line2	varchar(255)	YES		NULL	
+pin_code	varchar(6)	NO		NULL	
+created_at	datetime	YES		NULL	
+updated_at	datetime	YES		NULL	
+added_by	int(11) unsigned	YES		NULL	
+added_by_name	varchar(100)	YES		NULL	
+edited_by	int(11) unsigned	YES		NULL	
+edited_by_name	varchar(100)	YES		NULL	
