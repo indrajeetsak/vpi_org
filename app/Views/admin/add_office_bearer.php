@@ -318,8 +318,22 @@
 <?= $this->section('scripts') ?>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Choices.js -->
-<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<!-- Tom Select (replaces Choices.js) -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<style>
+    /* Tom Select scrollable dropdown */
+    .ts-dropdown .ts-dropdown-content {
+        max-height: 320px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .ts-dropdown .ts-dropdown-content::-webkit-scrollbar { width: 8px; }
+    .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+    .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-thumb:hover { background: #888; }
+    .ts-dropdown { z-index: 9999 !important; }
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -352,11 +366,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const pollingBoothSelect = document.getElementById('polling_booth_id');
     const lsSelect = document.getElementById('ls_id');
 
-    // Initialize Choices.js for Polling Booth
-    const pollingBoothChoices = new Choices(pollingBoothSelect, {
-        searchEnabled: true,
-        itemSelectText: '',
-        shouldSort: false,
+    // Initialize Tom Select for Polling Booth
+    const pollingBoothChoices = new TomSelect(pollingBoothSelect, {
+        searchField: 'text',
+        maxOptions: null,
+        placeholder: 'Select Polling Booth',
+        render: {
+            no_results: function(data, escape) {
+                return '<div class="no-results">No results for "' + escape(data.input) + '"</div>';
+            }
+        }
     });
     
     // Wrappers
@@ -737,9 +756,9 @@ document.addEventListener('DOMContentLoaded', function() {
         villageSelect.innerHTML = '<option value="">Select Village</option>';
         mlaAreaSelect.innerHTML = '<option value="">Select MLA Constituency</option>';
         
-        pollingBoothChoices.clearStore();
-        pollingBoothChoices.clearChoices();
-        pollingBoothChoices.setChoices([{value: '', label: 'Select Polling Booth', selected: true, disabled: false}], 'value', 'label', true);
+        pollingBoothChoices.clearOptions();
+        pollingBoothChoices.addOption({value: '', text: 'Select Polling Booth'});
+        pollingBoothChoices.setValue('');
         
         blockWrapper.classList.add('hidden');
         mlaAreaWrapper.classList.add('hidden');
@@ -875,9 +894,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedMlaAreaId = this.value;
         const level = appointedLevelSelect.value;
         
-        pollingBoothChoices.clearStore();
-        pollingBoothChoices.clearChoices();
-        pollingBoothChoices.setChoices([{value: '', label: 'Select Polling Booth', selected: true, disabled: false}], 'value', 'label', true);
+        pollingBoothChoices.clearOptions();
+        pollingBoothChoices.addOption({value: '', text: 'Select Polling Booth'});
+        pollingBoothChoices.setValue('');
         
         pollingBoothWrapper.classList.add('hidden');
         resetPostsTable();
@@ -891,11 +910,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(response => response.json())
                     .then(data => {
                         if (data.success && data.polling_booths) {
-                            const formattedChoices = data.polling_booths.map(booth => ({
-                                value: booth.id,
-                                label: booth.name
-                            }));
-                            pollingBoothChoices.setChoices(formattedChoices, 'value', 'label', false);
+                            pollingBoothChoices.clearOptions();
+                            data.polling_booths.forEach(booth => {
+                                pollingBoothChoices.addOption({value: booth.id, text: booth.name});
+                            });
                         }
                     });
             }
