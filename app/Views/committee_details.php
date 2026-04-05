@@ -64,8 +64,8 @@
                          <select id="level" name="level" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
                             <option value="">Select Level</option>
                             <?php 
-                                // Allowed IDs: Village(2), Sector(3), Circle(4), Block(5), MLA(6), MP(7), State(11), District(16)
-                                $allowedLevels = [2, 3, 4, 5, 6, 7, 11, 16];
+                                // Allowed IDs: Polling Booth(1), Village(2), Sector(3), Circle(4), Block(5), MLA(6), MP(7), State(11), District(16)
+                                $allowedLevels = [1, 2, 3, 4, 5, 6, 7, 11, 16];
                                 foreach ($levels as $level): 
                                     // Robust check: Convert both to int for comparison or check in_array loosely
                                     // Using loose comparison by default in_array is safer for string/int mix
@@ -125,6 +125,16 @@
                     <div class="relative">
                          <select id="village-dynamic-location" name="village_dynamic_location" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
                             <option value="">Select Village</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Polling Booth Location -->
+                 <div class="sm:col-span-1" id="polling-location-container" style="display: none;">
+                     <label for="polling-dynamic-location" class="block text-sm font-semibold text-gray-700 mb-2" id="polling-location-label">Polling Booth</label>
+                    <div class="relative">
+                         <select id="polling-dynamic-location" name="polling_dynamic_location" class="block w-full pl-3 pr-8 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all duration-200">
+                            <option value="">Select Polling Booth</option>
                         </select>
                     </div>
                 </div>
@@ -313,6 +323,30 @@ $(document).ready(function() {
                       $('#village-location-container').hide();
                  }
              });
+        } else if (levelId == 1) { // Polling Booth Level (ID 1)
+             loadDistricts(stateId, 'dynamic-location', 'District');
+             $('#location-container').fadeIn();
+             
+              $('#dynamic-location').off('change').on('change', function() {
+                 const districtId = $(this).val();
+                 if(districtId) {
+                     loadMlaAreas(districtId, 'sub-dynamic-location', 'MLA Area');
+                      $('#sub-location-container').fadeIn();
+                 } else {
+                      $('#sub-location-container').hide();
+                      $('#polling-location-container').hide();
+                 }
+             });
+             
+             $('#sub-dynamic-location').off('change').on('change', function() {
+                 const mlaId = $(this).val();
+                 if(mlaId) {
+                     loadPollingBooths(mlaId, 'polling-dynamic-location', 'Polling Booth');
+                      $('#polling-location-container').fadeIn();
+                 } else {
+                      $('#polling-location-container').hide();
+                 }
+             });
         }
     });
 
@@ -449,12 +483,35 @@ $(document).ready(function() {
         });
     }
 
+    function loadPollingBooths(mlaId, elementId, label) {
+        $(`#${elementId}`).html('<option value="">Loading...</option>');
+        $(`#polling-location-label`).text(label);
+        $.ajax({
+            url: `<?= base_url('auth/get-polling-booths/') ?>${mlaId}`,
+            method: 'GET',
+            complete: function(xhr) {
+                 const response = xhr.responseText;
+                 let options = `<option value="">Select ${label}</option>`;
+                 let res = { data: [] };
+                 try {
+                     res = typeof response === 'string' ? JSON.parse(response) : response;
+                 } catch (e) {}
+                 const list = res.data || [];
+                 list.forEach(item => {
+                     options += `<option value="${item.id}">${item.name}</option>`;
+                 });
+                 $(`#${elementId}`).html(options);
+            }
+        });
+    }
+
     function resetLocations() {
         $('#location-container').hide();
         $('#sub-location-container').hide();
         $('#sector-location-container').hide();
         $('#circle-location-container').hide();
         $('#village-location-container').hide();
+        $('#polling-location-container').hide();
         
         // Reset and clear events to prevent cascading to unwanted levels
         $('#dynamic-location').html('<option value="">Select Location</option>').off('change');
@@ -462,6 +519,7 @@ $(document).ready(function() {
         $('#sector-dynamic-location').html('<option value="">Select Sector</option>').off('change');
         $('#circle-dynamic-location').html('<option value="">Select Circle</option>').off('change');
         $('#village-dynamic-location').html('<option value="">Select Village</option>').off('change');
+        $('#polling-dynamic-location').html('<option value="">Select Polling Booth</option>').off('change');
         
         checkButtonState(); // Check state on reset
     }
@@ -482,6 +540,8 @@ $(document).ready(function() {
             enable = !!$('#circle-dynamic-location').val();
         } else if (levelId == 2) { // Village
             enable = !!$('#village-dynamic-location').val();
+        } else if (levelId == 1) { // Polling Booth
+            enable = !!$('#polling-dynamic-location').val();
         } else if (levelId == 6) { // MLA
             enable = !!$('#sub-dynamic-location').val();
         }
@@ -499,7 +559,7 @@ $(document).ready(function() {
     // We need to attach to dynamic dropdowns as they change. 
     // Since we re-create options, we can use a delegated event or attach in the load callbacks.
     // Delegated event is cleaner.
-    $(document).on('change', '#dynamic-location, #sub-dynamic-location, #sector-dynamic-location, #circle-dynamic-location, #village-dynamic-location', checkButtonState);
+    $(document).on('change', '#dynamic-location, #sub-dynamic-location, #sector-dynamic-location, #circle-dynamic-location, #village-dynamic-location, #polling-dynamic-location', checkButtonState);
 
     // Organ Change
     $('#organ').change(function() {
@@ -529,6 +589,7 @@ $(document).ready(function() {
         const sectorId = $('#sector-dynamic-location').val();
         const circleId = $('#circle-dynamic-location').val();
         const villageId = $('#village-dynamic-location').val();
+        const pollingId = $('#polling-dynamic-location').val();
         
         let data = {
             state_id: stateId,
@@ -560,6 +621,10 @@ $(document).ready(function() {
         } else if (levelId == 6) { // MLA
              if(locationId) data.district_id = locationId;
              if(subLocationId) data.mla_area_id = subLocationId;
+        } else if (levelId == 1) { // Polling Booth
+             if(locationId) data.district_id = locationId;
+             if(subLocationId) data.mla_area_id = subLocationId;
+             if(pollingId) data.polling_booth_id = pollingId;
         }
 
         $('#loading').show();

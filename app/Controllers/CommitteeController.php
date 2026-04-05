@@ -90,6 +90,7 @@ class CommitteeController extends BaseController
         if (!empty($filters['district_id'])) $builder->where('appointments.district_id', $filters['district_id']);
         if (!empty($filters['block_id'])) $builder->where('appointments.block_id', $filters['block_id']);
         if (!empty($filters['mla_area_id'])) $builder->where('appointments.mla_area_id', $filters['mla_area_id']);
+        if (!empty($filters['polling_booth_id'])) $builder->where('appointments.polling_booth_id', $filters['polling_booth_id']);
         if (!empty($filters['sector_id'])) $builder->where('appointments.sector_id', $filters['sector_id']);
         if (!empty($filters['circle_id'])) $builder->where('appointments.circle_id', $filters['circle_id']);
         

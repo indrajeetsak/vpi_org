@@ -660,6 +660,20 @@ class Auth extends BaseController
         return $this->response->setJSON(['success' => true, 'data' => $mlaAreas]);
      }
 
+    public function getPollingBooths($mlaAreaId = null)
+    {
+        if (!$mlaAreaId) {
+            return $this->response->setJSON(['success' => true, 'data' => []]);
+        }
+        $pollingBoothModel = new \App\Models\PollingBoothModel();
+        $pollingBooths = $pollingBoothModel
+            ->where('mla_area_id', $mlaAreaId)
+            ->orderBy('name', 'ASC')
+            ->select('id, name')
+            ->findAll() ?? [];
+        return $this->response->setJSON(['success' => true, 'data' => $pollingBooths]);
+    }
+
     public function getBlocks($districtId = null) 
     {
         if (!$districtId) { // Consistent empty response format
