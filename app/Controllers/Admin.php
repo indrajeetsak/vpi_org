@@ -531,6 +531,8 @@ class Admin extends BaseController
             d.name as district_name,
             b.name as block_name,
             sc.name as sector_name,
+            v.name as village_name,
+            pb.name as polling_booth_name,
             mla.name as mla_name,
             l1.name as ls_name,
             l2.Name as ls2_name,
@@ -546,6 +548,8 @@ class Admin extends BaseController
         ->join('districts d', 'd.id = appointments.district_id', 'left')
         ->join('blocks b', 'b.id = appointments.block_id', 'left')
         ->join('sectors sc', 'sc.id = appointments.sector_id', 'left')
+        ->join('villages v', 'v.id = appointments.village_id', 'left')
+        ->join('polling_booths pb', 'pb.id = appointments.polling_booth_id', 'left')
         ->join('mla_area mla', 'mla.id = appointments.mla_area_id', 'left')
         ->join('ls l1', 'l1.id = appointments.ls_id', 'left')
         ->join('2ls l2', 'l2.id = appointments.2ls_id', 'left')
@@ -567,9 +571,13 @@ class Admin extends BaseController
             6  => 'appointments.mla_area_id',
             5  => 'appointments.block_id',
             7  => 'appointments.ls_id',
+            8  => 'appointments.2ls_id',
+            9  => 'appointments.3ls_id',
+            10 => 'appointments.4ls_id',
             4  => 'appointments.circle_id',
             3  => 'appointments.sector_id',
             2  => 'appointments.village_id',
+            1  => 'appointments.polling_booth_id',
         ];
 
         if (!empty($filterLevelId) && !empty($filterLocationId) && isset($levelLocationFieldMap[(int)$filterLevelId])) {
@@ -606,6 +614,8 @@ class Admin extends BaseController
                         ->orLike('d.name', $word)
                         ->orLike('b.name', $word)
                         ->orLike('sc.name', $word)
+                        ->orLike('v.name', $word)
+                        ->orLike('pb.name', $word)
                         ->orLike('mla.name', $word)
                         ->orLike('l1.name', $word)
                         ->orLike('l2.Name', $word)

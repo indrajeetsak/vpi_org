@@ -70,7 +70,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= esc($user['post_name'] ?? ($user['post_id'] ?? 'N/A')) ?></td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <?php 
-                                    $locName = $user['sector_name'] ?? $user['block_name'] ?? $user['mla_name'] ?? $user['district_name'] ?? $user['ls_name'] ?? $user['ls2_name'] ?? $user['ls3_name'] ?? $user['ls4_name'] ?? $user['state_name'] ?? '';
+                                    $locName = $user['polling_booth_name'] ?? $user['village_name'] ?? $user['sector_name'] ?? $user['block_name'] ?? $user['mla_name'] ?? $user['district_name'] ?? $user['ls_name'] ?? $user['ls2_name'] ?? $user['ls3_name'] ?? $user['ls4_name'] ?? $user['state_name'] ?? '';
                                     echo esc($locName ? $locName . ' ' . $user['level_name'] : $user['level_name']);
                                 ?>
                             </td>
